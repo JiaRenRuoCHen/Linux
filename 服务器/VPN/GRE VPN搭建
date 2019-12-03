@@ -1,0 +1,90 @@
+配置GRE VPN
+
+步骤一：启用GRE模块（client和proxy都需要操作）
+1）查看计算机当前加载的模块
+使用lsmod查看当前计算机已经加载的模块，使用modprobe加载Linux内核模块，使用modinfo可以查看内核模块的信息。
+	]# lsmod                        //显示模块列表
+	]# lsmod  | grep ip_gre            //确定是否加载了gre模块
+
+2)加载模块ip_gre
+	]# modprobe  ip_gre 
+
+3）查看模块信息
+	]# modinfo ip_gre
+
+
+步骤二：Client主机创建VPN隧道
+1）创建隧道
+	]# ip tunnel add tun0  mode gre  remote 201.1.2.5 local 201.1.2.10
+	//ip tunnel add创建隧道（隧道名称为tun0），ip tunnel help可以查看帮助
+	//mode设置隧道使用gre模式
+	//local后面跟本机的IP地址，remote后面是与其他主机建立隧道的对方IP地址
+
+2）启用该隧道（类似与设置网卡up）
+	]# ip link show
+	]# ip link set tun0 up         //设置UP
+	]# ip link show
+
+3）为VPN配置隧道IP地址
+	]# ip addr add 10.10.10.10/24 peer 10.10.10.5/24 dev tun0
+	//为隧道tun0设置本地IP地址（10.10.10.10.10/24）
+	//隧道对面的主机IP的隧道IP为10.10.10.5/24
+	]# ip a s                      //查看IP地址
+
+
+
+步骤三：Proxy主机创建VPN隧道
+1）查看计算机当前加载的模块
+	]# lsmod                        //显示模块列表
+	]# lsmod  | grep ip_gre            //确定是否加载了gre模块
+
+2)加载模块ip_gre
+	]# modprobe  ip_gre
+
+3）创建隧道
+	]# ip tunnel add tun0  mode gre remote 201.1.2.10 local 201.1.2.5
+      //ip tunnel add创建隧道（隧道名称为tun0），ip tunnel help可以查看帮助
+      //mode设置隧道使用gre模式
+      //local后面跟本机的IP地址，remote后面是与其他主机建立隧道的对方IP地址
+
+4）启用该隧道（类似与设置网卡up）
+	]# ip a  s
+	]# ip link set tun0 up         //设置UP
+	]# ip a  s
+
+5）为VPN配置隧道IP地址
+	]# ip addr add 10.10.10.5/24 peer 10.10.10.10/24  dev tun0
+         //为隧道tun0设置本地IP地址（10.10.10.10.5/24）
+         //隧道对面的主机IP的隧道IP为10.10.10.10/24
+	]# ip a s                      //查看IP地址
+
+6)测试连通性
+	]#  ping 10.10.10.5
+	]#   ping 10.10.10.10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,97 @@
+部署MyCAT服务
+
+步骤一：配置分片服务器
+1）部署MyCat 运行环境
+	]# yum -y install java-1.8.0-openjdk //安装JDK
+
+2）安装提供服务的软件包
+	]# tar -zxvf Mycat-server-1.6-RELEASE-20161028204710-linux.tar.gz //解压源码
+	]# mv mycat /usr/local/ //移动目录（非必须操作）
+
+3）设置连接账号
+	]# vim /usr/local/mycat/conf/server.xml
+	<user name="root">        //连接mycat服务时使用的用户名
+   	  <property name="password">123456</property> //用户连接mycat用户时使用的密码
+  	   <property name="schemas">TESTDB</property> //逻辑库名
+	</user>
+	<user name="user">
+          <property name="password">user</property>
+          <property name="schemas">TESTDB</property>
+          <property name="readOnly">true</property>    //只读权限，连接mycat服务后只有读记录的权限,不写这一行则是可读写    
+	</user>
+
+4）配置数据分片
+使用sed删除不需要的配置行(可选操作)
+	# vim  /usr/local/mycat/conf/schema.xml 
+	<?xml version="1.0"?>
+	<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+	<mycat:schema xmlns:mycat="http://io.mycat/">          
+       <schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="100">//对TESTDB库下的表做分片存储
+                <!-- auto sharding by id (long) -->                 
+                <table name="travelrecord" dataNode="dn1,dn2,dn3" rule="auto-sharding-long" />  //对travelrecord表做分片存储
+                <table name="company" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />  //对company表做分片存储 </table>
+                <!-- <table name="oc_call" primaryKey="ID" dataNode="dn1$0-743" rule="latest-month-calldate"
+                        /> -->
+        </schema>
+	//定义数据库主机名及存储数据的库
+	<dataNode name="dn1" dataHost="localhost53" database="db1" /> 
+
+	//定义localhost主机名对应的数据库服务器ip地址
+	<dataHost name="localhost53" maxCon="1000" minCon="10" balance="0"
+                          writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100"> 
+                <heartbeat>select user()</heartbeat>
+                <writeHost host="hostM53" url="192.168.4.53:3306" user="adminplj"
+                                   password="123qqq...A">
+                </writeHost> 
+ 	</dataHost>
+
+5）配置数据库服务器
+根据分片文件的设置在对应的数据库服务器上创建存储数据的数据库
+	mysql> create database db1;   //在数据库上，创建db1库
+  
+根据分片文件配置，在对应的数据库服务器上创建授权用户(3台数据库服务器都要添加，在数据库服务器本机管理员root用户登录后执行授权命令)
+	mysql> grant all on  *.* to adminplj@"%" identified by "123qqq...A" ; //在数据库服务器上执行
+
+6）启动mycat服务
+	]# which  mysql || yum  -y  install  mariadb //安装提供mysql命令的软件包
+
+	启动服务	
+	]# /usr/local/mycat/bin/mycat start
+
+	查看服务状态
+	]# netstat  -utnlp  | grep  :8066  //查看端口
+	]# ps -C java  //查看进程
+
+
+步骤二：测试配置
+1）客户端访问
+在客户端192.168.4.50 连接分片服务器，访问数据
+	]# mysql -h192.168.4.56 -P8066 -uroot –p123456
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,38 @@
+配置trunk中继链路
+步骤一：配置trunk，放行所有vlan
+1）S1配置
+      如果接口被改动过，则需要恢复默认配置
+    [Huawei] clear configuration interface Ethernet0/0/7
+    [Huawei]interface Ethernet0/0/7
+    [Huawei-Ethernet0/0/7]port default vlan 1
+    [Huawei-Ethernet0/0/7]port link-type trunk
+    [Huawei-Ethernet0/0/1]port trunk allow-pass vlan all	//允许所有vlan通过
+
+2）S2配置
+    <Huawei>system-view 
+    [Huawei]vlan 2         //创建VLAN2
+    [Huawei]port-group 1
+    [Huawei-port-group-1]group-member Ethernet0/0/3 Ethernet0/0/4
+    [Huawei-port-group-1]port link-type access 
+    [Huawei-port-group-1]port default vlan 2                        
+    [Huawei]interface Ethernet0/0/7
+    [Huawei-Ethernet0/0/7]port default vlan 1
+    [Huawei-Ethernet0/0/7]port link-type trunk
+    [Huawei-Ethernet0/0/1]port trunk allow-pass vlan all	//允许所有vlan通过
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

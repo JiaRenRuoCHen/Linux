@@ -1,0 +1,54 @@
+SSL虚拟主机
+配置基于加密网站的虚拟主机，实现以下目标：
+1.域名为www.c.com
+2.该站点通过https访问
+3.通过私钥、证书对该站点所有数据加密
+
+源码安装Nginx时必须使用--with-http_ssl_module参数，启用加密模块，对于需要进行SSL加密处理的站点添加ssl相关指令（设置网站需要的私钥和证书）。
+加密算法一般分为对称算法、非对称算法、信息摘要。
+对称算法有：AES、DES，主要应用在单机数据加密。
+非对称算法有：RSA、DSA，主要应用在网络数据加密。
+信息摘要：MD5、sha256，主要应用在数据完整性校验。
+
+步骤一：配置SSL虚拟主机
+1）生成私钥与证书
+	]# cd /usr/local/nginx/conf
+	]# openssl genrsa > cert.key                            //生成私钥
+	]# openssl req -new -x509 -key cert.key > cert.pem      //生成证书
+
+2）修改Nginx配置文件，设置加密网站的虚拟主机
+	]# vim  /usr/local/nginx/conf/nginx.conf
+   	server {
+	        listen       443 ssl;
+      	  server_name            www.c.com;	
+	        ssl_certificate      cert.pem;         #这里是证书文件
+	        ssl_certificate_key  cert.key;         #这里是私钥文件
+      	  ssl_session_cache    shared:SSL:1m;
+      	  ssl_session_timeout  5m;
+      	  ssl_ciphers  HIGH:!aNULL:!MD5;
+      	  ssl_prefer_server_ciphers  on;
+      	  location / {
+            	root   html;
+	           index  index.html index.htm;
+	        }
+	    }
+
+3）重新加载配置
+	]# /usr/local/nginx/sbin/nginx -s reload
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

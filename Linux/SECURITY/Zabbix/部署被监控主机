@@ -1,0 +1,40 @@
+部署被监控主机Zabbix Agent
+1）源码安装Zabbix agent软件
+	]# useradd -s /sbin/nologin  zabbix
+	]# yum -y install gcc pcre-devel
+	]# tar -zxf zabbix-3.4.4.tar.gz 
+	]# cd zabbix-3.4.4/
+	zabbix-3.4.4]# ./configure --enable-agent
+	zabbix-3.4.4]# make && make install 
+
+2）修改agent配置文件，启动Agent
+	]# vim /usr/local/etc/zabbix_agentd.conf
+	Server=127.0.0.1,192.168.2.5                //谁可以监控本机（被动监控模式）
+	ServerActive=127.0.0.1,192.168.2.5            //谁可以监控本机（主动监控模式）
+	Hostname=zabbixclient_web1                    //被监控端自己的主机名
+	EnableRemoteCommands=1    	//监控异常后，是否允许服务器远程过来执行命令，如重启某个服务
+	UnsafeUserParameters=1                                 //是否允许自定义key监控
+
+3）拷贝启动脚本（非必须操作，可选做），有启动脚本可以方便管理服务，启动与关闭服务。启动脚本位于zabbix源码目录下。
+	zabbix-3.4.4]# cd misc/init.d/fedora/core
+	zabbix-3.4.4]# cp zabbix_agentd /etc/init.d/
+	zabbix-3.4.4]# /etc/init.d/zabbix_agentd start
+	zabbix-3.4.4]# /etc/init.d/zabbix_agentd stop
+	zabbix-3.4.4]# /etc/init.d/zabbix_agentd status
+	zabbix-3.4.4]# /etc/init.d/zabbix_agentd restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

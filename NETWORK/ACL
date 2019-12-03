@@ -1,0 +1,56 @@
+基本ACL的配置
+步骤一：配置IP
+
+为路由器g0/0/0接口配置ip 192.168.1.254，为路由器g0/0/1接口配置ip 192.168.2.254
+
+    [Huawei]interface GigabitEthernet 0/0/0
+    [Huawei-GigabitEthernet0/0/0] ip address  192.168.1.254 24
+    [Huawei]acl 2000
+    [Huawei-acl-basic-2000]rule deny source 192.168.2.1 0
+    [Huawei]interface GigabitEthernet 0/0/1
+    [Huawei-GigabitEthernet0/0/1]ip address  192.168.2.254 24
+    [Huawei-GigabitEthernet0/0/1]traffic-filter inbound acl 2000
+
+
+基本ACL的配置（2）
+步骤一：放行192.168.2.1，拒绝其他设备
+
+此步骤需要在上一实验基础上进行
+
+    [Huawei]acl 2001
+    [Huawei-acl-basic-2001]rule permit source 192.168.2.1 0
+    [Huawei-acl-basic-2001]rule deny source any
+    [Huawei]interface GigabitEthernet 0/0/1
+    [Huawei-GigabitEthernet0/0/1]undo traffic-filter inbound acl 2000
+    [Huawei-GigabitEthernet0/0/1] traffic-filter inbound acl 2001
+
+
+高级ACL
+步骤一：根据协议所用端口进行封堵
+
+此步骤需要在上一实验基础上进行
+
+    [Huawei]acl 3000
+    [Huawei-acl-adv-3000]rule deny tcp source 192.168.2.1 0 destination 192.168.1.1 
+    0 destination-port eq 21
+    [Huawei-acl-adv-3000]rule deny tcp source 192.168.2.2 0 destination 192.168.1.1 
+    0 destination-port eq 80
+    [Huawei]interface g0/0/1
+    [Huawei-GigabitEthernet0/0/1]traffic-filter inbound acl 3000      //在接口中应用acl
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

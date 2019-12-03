@@ -1,0 +1,69 @@
+构建MySQL服务器
+步骤一：准备工作 (不能影响安装使用)
+1）如果之前有mariadb，则需要先卸载，并删除对应的配置与数据：
+2）删除/etc/my.cnf配置文件
+3）删除数据
+4）卸载软件包（没有会显示未安装软件包）
+
+
+步骤二：安装mysql软件包
+1）解压mysql-5.7.17.tar 软件包
+	]# tar -xvf mysql-5.7.17.tar               //解压mysql整合包
+
+2）安装MySQL软件包
+	]# yum  -y   install    mysql-community-*.rpm   //yum安装自动解决依赖 在解压目录下安装
+
+3）启动MySQL数据库服务并设置开机自启 		//第一次启动，需要初始化数据，会比较慢
+	]# systemctl start mysqld                  //启动mysql服务
+	]# systemctl enable mysqld                 //设置开机自启
+	]# systemctl status mysqld                 //查看mysql服务状态
+
+
+步骤三：连接MySQL服务器，修改密码
+1）查看初始密码
+	]#grep –i  'password' /var/log/mysqld.log 		////随机生成的管理密码在/var/log/mysqld.log里
+
+2）使用初始密码连接mysql服务
+	]# mysql -u root -p'mtoa>Av<p6Yk' //初始密码登录
+
+3）重置数据库管理员roo本机登录密码
+	mysql> alter user  root@”localhost” identified by "123qqq…A";  //修改登陆密码 满足密码策略
+
+4）修改密码策略 (临时修改) 
+	mysql>show variables like "%assword%;    		//查看密码相关的策略
+	mysql>set global validate_password_policy=0;      //只验证长度
+	mysql>set global validate_password_length=6；     //修改密码长度,默认值是8个字符 
+	mysql>alter user root@”localhost”  identified by "tarena";  //修改登陆密码
+	永久修改在/etc/my.cnf中添加
+	validate_password_policy=0
+	validate_password_length=6
+5）使用修改后的密码登录
+	]# mysql -uroot -ptarena        //登录
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

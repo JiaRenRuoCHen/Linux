@@ -1,0 +1,45 @@
+安装部署Tomcat服务器
+步骤一：部署Tomcat服务器软件(192.168.2.100/24)
+1）使用RPM安装JDK环境
+	]# yum -y install  java-1.8.0-openjdk                //安装JDK
+	]# yum -y install java-1.8.0-openjdk-headless        //安装JDK
+	]# java -version                                    //查看JAVA版本
+
+2）安装Tomcat（apache-tomcat-8.0.30.tar.gz软件包，在lnmp_soft中有提供）
+	]# tar -xf  apache-tomcat-8.0.30.tar.gz	//压缩安装后目录,解压后即安装
+	]# mv apache-tomcat-8.0.30  /usr/local/tomcat
+	]# ls /usr/local/tomcat
+	bin/                        //主程序目录
+	lib/                     //库文件目录
+	logs/                      //日志目录  
+	temp/                      //临时目录
+	work/                       //自动编译目录jsp代码转换servlet
+	conf/                        //配置文件目录
+	webapps/                     //页面目录
+
+3）启动服务
+	]# /usr/local/tomcat/bin/startup.sh
+
+4）服务器验证端口信息
+	]# ss -nutlp |grep java        //查看java监听的端口
+
+如果检查端口时，8005端口启动非常慢，默认tomcat启动需要从/dev/random读取大量的随机数据，默认该设备生成随机数据的速度很慢，可用使用下面的命令用urandom替换random
+	]# mv /dev/random  /dev/random.bak
+	]# ln -s /dev/urandom  /dev/random
+
+另外，还可以使用方案二解决
+	]# yum install rng-tools
+	]# systemctl start rngd
+	]# systemctl enable rngd
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,42 @@
+步骤一：把slave服务器移除集群
+
+1）在管理主机，移除slave服务器，从服务器没有槽，直接移除即可.
+	]# redis-trib.rb  del-node 192.168.4.51:6351 f6649ea99b2f01faca26217691222c17a3854381   //执行移除命令
+
+
+步骤二：把master服务器移除集群
+
+1）在管理主机,先删除master服务器占用的hash槽
+	]# redis-trib.rb  reshard 192.168.4.53:6353
+	How many slots do you want to move (from 1 to 16384)?4096 //移除4096个数槽
+	What is the receiving node ID?  bc5c4e082a5a3391b634cf433a6486c867cfc44b  //要移动给谁的id即目标主机（这里可以随机写一个master的ID）  
+	Source node #1: c5e0da48f335c46a2ec199faa99b830f537dd8a0  //从谁那移动即源主机（这里写4.58的ID）  
+
+2）在管理主机,查看集群信息
+	]# redis-trib.rb  info  192.168.4.51:6351
+	
+3）在管理主机，移除master主机
+	]# redis-trib.rb del-node 192.168.4.53:6353  c5e0da48f335c46a2ec199faa99b830f537dd8a0    //删除谁+删除的id
+
+4）在管理主机,查看集群信息
+	]# redis-trib.rb  info  192.168.4.51:6351
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

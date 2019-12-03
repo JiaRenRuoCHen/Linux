@@ -1,0 +1,45 @@
+
+
+三层交换机基本配置
+步骤一：创建vlan，并配置虚拟接口的ip
+
+三层交换机配置
+
+    [Huawei]vlan batch 2 3
+    [Huawei]interface Vlanif 1
+    [Huawei-Vlanif1]ip address 192.168.1.254 24
+    [Huawei]interface Vlanif 2
+    [Huawei-Vlanif1]ip address 192.168.2.254 24
+    [Huawei]interface Vlanif 3
+    [Huawei-Vlanif1]ip address 192.168.3.254 24
+    [Huawei]interface G0/0/2
+    [Huawei-GigabitEthernet0/0/2] port link-type access
+    [Huawei-GigabitEthernet0/0/2] port default vlan 2
+    [Huawei]interface G0/0/3
+    [Huawei-GigabitEthernet0/0/2] port link-type access
+    [Huawei-GigabitEthernet0/0/2] port default vlan 3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

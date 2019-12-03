@@ -1,0 +1,80 @@
+案例1：MySQL一主一从
+步骤一：配置主服务器
+1）启用binlog日志
+	]# vim /etc/my.cnf
+	server_id=51            //server_id
+	log-bin=master51        //日志名
+	]# systemctl  restart mysqld
+	
+2）用户授权
+	用户名自定义、客户端地址使用% 或 只指定 从服务器的地址 都可以、只给复制数据的权限即可。
+	]# mysql -uroot -p密碼
+	mysql> grant  replication slave on *.*  to repluser@"%" identified  by "123qqq...A";
+
+3）查看binlog日志信息
+	查看日志文件名 和 偏移量位置。
+	mysql> show master status\G;
+
+
+步骤二：配置从服务器
+1）指定server_id
+	Server_id值可以自定义，但不可以与主服务器相同。
+
+2）确保与主服务器数据一致（如果是使用2台新部署的数据库服务器配置主从同步，此操作可以忽略）
+	]# mysqldump  -uroot  –p密码   --master-data   数据库名   > /allbak.sql  //在主服务器上备份数据
+	]# scp  /allbak.sql    root@192.168.4.52:/root/   //将备份文件拷贝给从服务器
+	mysql> create database 数据库名 ;  //在从服务器上创建与主服务器同名的数据库
+	]# mysql  -uroot –p密码  数据库名  <  /root/allbak.sql //从服务器使用备份文件恢复数据
+	]# vim /root/allbak.sql //在从服务器查看备份文件中的binlog日志信息
+
+3）指定主服务器信息
+	数据库管理员root本机登录，指定主服务器信息，其中日志文件名和偏移量 写allbak.sql文件记录的。
+	mysql> change   master  to //指定主服务器
+    	    -> master_host=“192.168.4.51”,                 //主服务器ip地址
+    	    -> master_user=“repluser”,                        //主服务器授权用户
+    	    -> master_password=“123qqq…A”,            //主服务器授权用户密码
+    	    -> master_log_file=“master51-bin.000001”,//主服务器日志文件
+    	    -> master_log_pos=441;                  //主服务器日志偏移量
+
+
+步骤三：客户端测试配置
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

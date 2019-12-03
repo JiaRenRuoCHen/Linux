@@ -1,0 +1,30 @@
+步骤一：配置哨兵服务
+1） 安装源码软件redis ，无需做初始化配置。
+
+2）编辑主配置文件   //解压目录下有模板sentinel.conf 
+sentinel   monitor   server51   192.168.4.51   6351   1 //监视主服务器
+bind  0.0.0.0    //哨兵服务地址（表示本机所有网络接口）
+sentinel auth-pass  server51   123456   //主服务器密码
+
+3）启动哨兵服务
+	]# redis-sentinel /etc/sentinel.conf    //启动哨兵服务
+
+
+步骤二：测试配置
+1）停止主服务器的redis服务
+	]# /etc/init.d/redis_6379 stop
+
+2）在服务器slave主机，查看复制信息
+	192.168.4.52:6352> info replication
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,65 @@
+
+
+
+
+
+
+
+
+
+
+用户认证
+通过调整Nginx服务端配置，实现以下目标：
+1.访问Web页面需要进行用户认证
+2.用户名为：tom，密码为：123456
+
+通过Nginx实现Web页面的认证，需要修改Nginx配置文件，在配置文件中添加auth语句实现用户认证。最后使用htpasswd命令创建用户及密码即可。
+
+步骤一：修改Nginx配置文件
+1）修改/usr/local/nginx/conf/nginx.conf
+    [root@proxy ~]# vim /usr/local/nginx/conf/nginx.conf
+    .. ..
+    server {
+            listen       80;
+            server_name  localhost;
+            auth_basic "Input Password:";                        //认证提示符信息
+            auth_basic_user_file  "/usr/local/nginx/pass";        //认证的密码文件
+            location / {
+                root   html;
+                index  index.html index.htm;
+            }
+      }
+
+2）生成密码文件，创建用户及密码
+使用htpasswd命令创建账户文件，需要确保系统中已经安装了httpd-tools。
+    [root@proxy ~]# yum -y install  httpd-tools
+    [root@proxy ~]# htpasswd -c /usr/local/nginx/pass   tom        //创建密码文件
+    New password: 
+    Re-type new password: 
+    Adding password for user tom
+    [root@proxy ~]# htpasswd  /usr/local/nginx/pass   jerry      //追加用户，不使用-c选项
+    New password: 
+    Re-type new password: 
+    Adding password for user jerry
+    [root@proxy ~]# cat /usr/local/nginx/pass
+
+3）重新加载配置
+    [root@proxy ~]# /usr/local/nginx/sbin/nginx -s reload    //重新加载配置文件    
+      #请先确保nginx是启动状态，否则运行该命令会报错.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

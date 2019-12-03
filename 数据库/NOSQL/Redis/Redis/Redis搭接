@@ -1,0 +1,39 @@
+步骤一：搭建redis服务器
+1）安装源码redis软件
+	]# yum -y install gcc 		//安装依赖
+	]# tar -zxf redis-4.0.8.tar.gz		//解压缩	
+	]# cd redis-4.0.8/	
+	]# make	
+	]# make install	
+	]# ./utils/install_server.sh		//执行初始化脚本
+
+
+	Port           : 6379                   //端口号
+	Config file    : /etc/redis/6379.conf         //配置文件目录
+	Log file       : /var/log/redis_6379.log      //日志目录
+	Data dir       : /var/lib/redis/6379          //数据库目录
+	Executable     : /usr/local/bin/redis-server  //启动程序的目录
+	Cli Executable : /usr/local/bin/redis-cli     //命令行的连接工具
+
+2）查看服务状态
+	]#  /etc/init.d/redis_6379 status
+
+3）查看监听的端口
+	]# netstat -antupl |grep :6379 //查看端口
+
+4）开启/停止服务
+	]# /etc/init.d/redis_6379 start
+	]# /etc/init.d/redis_6379 stop
+
+5）连接redis
+	]# redis-cli  //默认连接127.0.0.1地址的 6379端口
+	set keyname keyvalue //存储
+	get keyname //获取
+
+
+
+
+
+
+
+

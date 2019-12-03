@@ -1,0 +1,99 @@
+MYSQL官网：https://dev.mysql.com/
+
+
+1. Ubuntu安装MySQL服务
+　　　　1. 安装服务端
+　　　　　　sudo apt-get install mysql-server
+　　　　2. 安装客户端
+　　　　　　sudo apt-get install mysql-client
+　　　　3. Ubuntu安装软件
+　　　　　　1. sudo apt-get update
+　　　　　　　　访问源列表中的每个网址，读取软件列表，保存到本地/var/lib/apt/lists/
+　　　　　　2. sudo apt-get upgrade
+　　　　　　　　把本地已安装软件与刚下载的软件列表进行对比，如果发现已安装软件版本低，则更新
+　　　　　　3. sudo apt-get -f install
+　　　　　　　　修复依赖关系
+　　
+
+2. Windows安装MySQL
+　　　　　　1. 下载MySQL安装包(windows)
+　　　　　　　　mysql-installer **5.7.***.msi
+　　　　　　2. 安装教程去安装
+　　
+
+3. RedHat安装MySQL
+      1.下载：mysql-5.7.22-1.el7.x86_64.rpm-bundle.tar
+
+键入：wget https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.22-1.el7.x86_64.rpm-bundle.tar
+
+在root模式下将安装包移动到/home/mysql
+
+键入 cd .. 移动到home目录
+
+键入 mkdir mysql 创建MySQL目录
+
+将文件移入刚才创建的目录后
+
+键入 tar -xvf mysql-5.7.22-1.el7.x86_64.rpm-bundle.tar 解压文件
+
+    依次安装，不能改变顺序，因为有依赖关系
+
+    rpm -ivh mysql-community-common-5.7.22-1.el7.x86_64.rpm
+
+    rpm -ivh mysql-community-libs-5.7.22-1.el7.x86_64.rpm
+
+    rpm -ivh mysql-community-client-5.7.22-1.el7.x86_64.rpm
+
+    rpm -ivh mysql-community-server-5.7.22-1.el7.x86_64.rpm 
+
+    2.配置mysql的密码
+没有密码，你是进不去的。刚安装完之后会有个随机密码提供给你，这里直接教你如何修改成自己想要的密码，一步到位。Root用户下键入vi /etc/my.cnf，添加skip-grant-tables在文本的最后一行并保存退出，这样可以跳过输入密码。
+
+重启服务:service mysqld restart
+
+登陆mysql: mysql -u root -p
+
+直接确认不用密码即可登陆
+
+键入：UPDATE mysql.user SET authentication_string = PASSWORD('Sumroot123456..')WHERE USER='root' AND Host='localhost'; PASSWORD('')，引号里改为你想要的密码，注意版本要求的密码格式，这里设计为大写+小写+数字+标点符号的格式，密码太简单也会报错。
+
+键入：FLUSH PRIVILEGES; 刷新权限
+
+键入：exit 退出Mysql
+
+再次vi /etc/my.cnf，将刚才添加的语句删除，然后重启服务，修改密码工作即完成。 
+
+     3.修改密码策略
+	vim /etc/my.cnf
+	validate_password_policy=0          //确认密码策略
+	validate_password_length=6          //确认密码长度
+	
+
+4. 启动和连接MySQL服务
+
+　　1. 服务端启动
+　　　　1. 查看MySQL状态
+　　　　　　sudo /etc/init.d/mysql status 查看MySQL状态
+　　　　　　sudo /etc/init.d/mysql start 启动
+　　　　　　sudo /etc/init.d/mysql stop 停止
+　　　　　　sudo /etc/init.d/mysql restart 重新启动
+　　2. 客户端连接
+　　　　1. 命令格式
+　　　　　　mysql -h主机地址 -u用户名 -p密码
+　　　　　　mysql -hlocalhost -uroot -p123456
+　　　　2. 本地连接可省略 -h 选项
+　　　　　　mysql -uroot -p123456
+
+
+
+
+
+
+
+
+
+
+
+
+
+

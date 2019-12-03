@@ -1,0 +1,13 @@
+Easy IP
+在R1上配置Easy IP使企业内网192.168.2.0/24利用g0/0/0端口的ip，实现外部网络的访问
+步骤一：配置静态NAT
+
+注：以下命令需要在路由器配置好ip的基础上完成
+
+    [Huawei]acl 2000    
+    [Huawei-acl-basic-2000]rule permit source any     //使用acl定义任何内部地址
+    [Huawei]interface g0/0/0
+    [Huawei-GigabitEthernet0/0/0]nat outbound 2000    //可以利用g0/0/0的ip访问外网
+
+
+

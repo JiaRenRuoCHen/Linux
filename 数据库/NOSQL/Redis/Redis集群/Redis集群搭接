@@ -1,0 +1,69 @@
+
+部署redis集群(至少需要6台Redis服务器)
+
+步骤一：配置管理主机
+
+1）部署ruby脚本运行环境
+	]#yum  -y  install   rubygems
+	]# gem install redis-3.2.1.gem 	//集群管理包
+	
+2）创建管理集群脚本
+	]#mkdir  /root/bin     //创建命令检索目录 PATH环境变量的查找目录
+	]#tar -zxvf redis-4.0.8.tar.gz		//为了有管理Redis的命令ruby脚本
+	]#cp  redis-4.0.8/src/redis-trib.rb   /root/bin/ //创建管理集群脚本
+	]#chmod  +x   /root/bin/redis-trib.rb
+
+步骤二：创建集群
+1）启动Redis服务器的集群功能
+	]# /etc/init.d/redis_6379 stop //停止redis服务
+	]# vim /etc/redis/6379.conf //修改配置文件	
+	port 6354        //修改端口（可选配置）
+	cluster-enabled yes     //启用集群功能
+	cluster-config-file nodes-6379.Donf //存储集群信息的配置文件
+	cluster-node-timeout 5000        //集群节点通信超时时间
+
+2）在管理主机创建集群
+	]# redis-trib.rb create  --replicas 1 192.168.4.51:6351  192.168.4.52:6352  192.168.4.53:6353192.168.4.54:6354  192.168.4.55:6355  192.168.4.56:6356  //1表示主库有一个从库 ,IP:端口
+	
+
+步骤三：查看集群信息
+1）在管理主机查看集群信息
+	]# redis-trib.rb info 192.168.4.51:6351 //查看集群信息
+
+2）在管理主机检测集群
+	]# redis-trib.rb check 192.168.4.51:6351 
+
+3）在任意一台redis服务器本机，查看集群信息
+	]# redis-cli  -h 192.168.4.51 -p 6351
+	192.168.4.51:6351> cluster info  
+	192.168.4.51:6351> cluster  nodes 
+
+步骤四：访问集群
+	]# redis-cli  -c  -h 192.168.4.51 -p 6351 //连接服务器51
+
+
+
+扩展 cluster reset 重置集群设置
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

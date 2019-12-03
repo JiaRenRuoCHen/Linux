@@ -1,0 +1,86 @@
+三层交换配置VRRP
+在三层交换机配置热备份路由协议使组内两个出口设备共享一个虚拟ip地址192.168.1.254为内网主机的网关
+步骤一：pc配置ip
+
+pc设备配置ip与网关，192.168.1.1的网关为192.168.1.254
+
+192.168.4.1的网关为192.168.4.254
+
+步骤二：路由器配置
+
+路由器配置
+
+    <Huawei>system-view 
+    [Huawei]interface GigabitEthernet 0/0/0
+    [Huawei-GigabitEthernet0/0/0]ip address 192.168.2.1 24
+    [Huawei]interface GigabitEthernet 0/0/1
+    [Huawei-GigabitEthernet0/0/1]ip address 192.168.3.1 24
+    [Huawei]interface GigabitEthernet 0/0/2
+    [Huawei-GigabitEthernet0/0/2]ip address 192.168.4.254 24
+    [Huawei]ospf    
+    [Huawei-ospf-1]area 0
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.2.0 0.0.0.255
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.3.0 0.0.0.255
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.4.0 0.0.0.255
+
+步骤三：交换机配置
+
+1）MS1
+
+    <Huawei>system-view
+    [Huawei]interface Vlanif 1
+    [Huawei-Vlanif1]ip add 192.168.1.252 24
+    [Huawei]vlan 2
+    [Huawei-vlan2]quit
+    [Huawei]interface Vlanif 2
+    [Huawei-Vlanif2]ip address 192.168.2.2 24
+    [Huawei-Vlanif2]quit
+    [Huawei]interface GigabitEthernet 0/0/2
+    [Huawei-GigabitEthernet0/0/2]port link-type access 
+    [Huawei-GigabitEthernet0/0/2]port default vlan 2
+    [Huawei]ospf    
+    [Huawei-ospf-1]area 0
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.1.0 0.0.0.255
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.2.0 0.0.0.255
+    [Huawei]interface Vlanif 1
+    [Huawei-Vlanif1]vrrp vrid 1 virtual-ip 192.168.1.254
+
+2）MS2
+
+    <Huawei>system-view
+    [Huawei]interface Vlanif 1
+    [Huawei-Vlanif1]ip add 192.168.1.253 24
+    [Huawei]vlan 3
+    [Huawei-vlan3]quit
+    [Huawei]interface Vlanif 3
+    [Huawei-Vlanif3]ip address 192.168.3.2 24
+    [Huawei-Vlanif3]quit
+    [Huawei]interface GigabitEthernet 0/0/2
+    [Huawei-GigabitEthernet0/0/2]port link-type access 
+    [Huawei-GigabitEthernet0/0/2]port default vlan 3
+    [Huawei]ospf    
+    [Huawei-ospf-1]area 0
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.1.0 0.0.0.255
+    [Huawei-ospf-1-area-0.0.0.0]network 192.168.3.0 0.0.0.255
+    [Huawei]interface Vlanif 1
+    [Huawei-Vlanif1]vrrp vrid 1 virtual-ip 192.168.1.254
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

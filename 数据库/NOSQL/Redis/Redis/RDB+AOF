@@ -1,0 +1,109 @@
+RDB介绍：
+Redis数据库文件，全称Reids DataBase
+数据持久化方式之一
+在指定时间间隔内，将内存中的数据集快照写入硬盘术语叫Snapshot快照
+恢复时，将快照文件直接读到内存里相关配置参数
+默认保存在/var/lib/redis/6379/ Redis数据库目录下
+
+配置文件/etc/redis/6379.conf中
+默认设置文件名为 dbfilename “dump.rdb” 
+数据从内存保存到硬盘的频率 
+save 900 1 900秒内且有1个key改变
+save 300 10 300秒内且有10个key改变
+save 60 10000 60秒内且有10000个key改变
+手动存盘
+save    //阻塞写存盘
+bgsave	//不阻塞写存盘
+
+
+
+一：使用RDB文件恢复数据
+1)备份数据(正常运行的服务器)
+	]# cp /var/lib/redis/6379/dump.rdb  /tmp/dump.rdb    //备份dump.rdb文件
+	
+2)删除数据 （56主机模拟误删除数据）
+	192.168.4.56:6356> flushall 	//清空数据
+	]# redis-cli -h 192.168.4.56  -p 6356  -a 123456 shutdown  	//停止服务
+	]# rm –rf  /var/lib/redis/6379/* //清空数据库目录
+
+3)恢复数据(56主机使用备份文件恢复数据)
+	]# scp  root@192.168.4.56:/root/dump.rdb   /var/lib/redis/6379/dump.rdb   //下载备份文件给目标主机
+	]# /etc/init.d/redis_6379 start //启动服务
+
+4)查看数据库
+	]# redis-cli -h 192.168.4.56 –p 6356 //访问服务
+	192.168.4.56:6356> keys *  //查看数据		
+
+
+
+
+AOF介绍：
+Append Only File
+追加方式记录写操作的文件
+记录redis服务所有写操作
+不断的将新的写操作，追加到文件的末尾
+默认没有启用
+使用cat命令可以查看文件内容
+
+启用AOF
+192.168.4.56:6356> config set appendonly yes	 //启用
+192.168.4.56:6356> config rewrite 	//写进配置文件
+
+配置文件/etc/redis/6379.conf中修改
+appendfilename "appendonly.aof" 	//指定文件名
+appendfsync always //时时记录，并完成磁盘同步
+appendfsync everysec //每秒记录一次，并完成磁盘同步
+appendfsync no //写入aof ，不执行磁盘同步
+auto-aof-rewrite-min-size 64mb 	//首次重写触发值
+auto-aof-rewrite-percentage 100	//再次重写,增长百分比
+
+文件保存在/var/lib/redis/6379/appendonly.aof
+
+修复AOF文件
+	]# redis-check-aof --fix appendonly.aof
+
+
+二.使用AOF文件恢复数据
+步骤一：使用AOF文件恢复数据
+
+1）修改配置文件
+	]# redis-cli -h 192.168.4.51 –p 6351 -a 123456 //连接服务
+	192.168.4.51:6351>config  set   appendonly yes     //启用aof，默认no
+	192.168.4.51:6351> config  rewrite //写进配置文件
+	192.168.4.51:6351> save 		//存盘
+	]# ls  /var/lib/redis/6379/   //会出现appendonly.aof文件
+
+2）备份AOF文件
+	]# cp /var/lib/redis/6379/appendonly.aof /tmp/appendonly.aof  
+	]# scp /tmp/appendonly.aof  root@192.168.4.57:/root/  //传递备份文件给目标主机
+
+3）删除数据（在57主机 默认数据误删除）
+	]# redis-cli -h 192.168.4.57 -p 6357  //连接服务
+	192.168.4.57:6357> flushall  //清除数据
+
+4) 使用AOF文件恢复数据
+	]# vim +673 /etc/redis/6379.conf
+	appendonly  yes  //启用AOF
+	]# /etc/init.d/redis_6379 stop  //停止服务
+	]# rm  -rf  /var/lib/redis/6379/* //删除没有数据的文件
+	]# cp  /root/appendolny.aof /var/lib/redis/6379/  //拷贝文件
+	]# /etc/init.d/redis_6379  start  //启动服务
+	]# redis-cli -h 192.168.4.57 -p 6357 //连接服务
+	192.168.4.57:6357> keys *  //查看数据
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

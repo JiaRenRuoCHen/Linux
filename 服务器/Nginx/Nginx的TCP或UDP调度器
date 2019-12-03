@@ -1,0 +1,40 @@
+Nginx的TCP/UDP调度器
+	1.后端SSH服务器两台
+	2.Nginx编译安装时需要使用--with-stream，开启ngx_stream_core_module模块
+	3.Nginx采用轮询的方式调用后端SSH服务器
+
+步骤一：部署支持4层TCP/UDP代理的Nginx服务器
+1）部署nginx服务器
+编译安装必须要使用--with-stream参数开启4层代理模块。
+	]# yum -y install gcc pcre-devel openssl-devel        //安装依赖包
+	]# tar  -xf   nginx-1.12.2.tar.gz
+	]# cd  nginx-1.12.2
+	nginx-1.12.2]# ./configure   \
+    	> --with-http_ssl_module        \                        //开启SSL加密功能
+   	> --with-stream                                       //开启4层反向代理功能
+	nginx-1.12.2]# make && make install           //编译并安装
+
+步骤二：配置Nginx服务器，添加服务器池，实现TCP/UDP反向代理功能
+1）修改/usr/local/nginx/conf/nginx.conf配置文件
+	]# vim /usr/local/nginx/conf/nginx.conf
+ 	   stream {
+                upstream backend {
+                   server 192.168.2.100:22;            //后端SSH服务器的IP和端口
+                   server 192.168.2.200:22;
+	    }
+                server {
+                    listen 12345;                    //Nginx监听的端口
+                     proxy_pass backend;
+                 }
+  	  }
+	    http {
+	    .. ..
+	    }
+
+2）重新加载配置
+	]# /usr/local/nginx/sbin/nginx -s reload
+
+
+
+
+

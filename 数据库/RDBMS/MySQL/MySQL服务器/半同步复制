@@ -1,0 +1,30 @@
+配置半同步复制模式
+
+步骤一：查看是否允许动态加载模块。
+1）查看是否允许动态加载模块（默认允许）
+	mysql> show  variables  like  'have_dynamic_loading';
+
+2）命令行加载插件
+	mysql> install  plugin  rpl_semi_sync_master   SONAME   ”semisync_master.so”; //加载master模块
+	mysql> install  plugin  rpl_semi_sync_slave SONAME  'semisync_slave.so'; //加载slave模块
+
+3) 查看模块是否安装成功：
+	mysql> select  plugin_name, plugin_status from  information_schema.plugins  where plugin_name like '%semi%';  
+
+4）启用半同步复制 （在安装完插件后，半同步复制默认是关闭的）
+	mysql> set  global rpl_semi_sync_master_enabled = 1; //启用master半同步复制
+	mysql> set  global rpl_semi_sync_slave_enabled = 1; //启用slave半同步复制
+
+5）修改配置文件，永久启用半同步复制
+	]# vim /etc/my.cnf
+	plugin-load="rpl_semi_sync_master=semisync_master.so;rpl_semi_sync_slave=semisync_slave.so"
+	rpl-semi-sync-master-enabled = 1
+	rpl-semi-sync-slave-enabled = 1
+
+5）重启数据库服务，并查看状态信息
+
+
+
+
+
+

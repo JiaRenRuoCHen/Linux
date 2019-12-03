@@ -1,0 +1,32 @@
+配置静态NAT
+步骤一：配置静态NAT
+      无需配置网关
+    [Huawei]interface GigabitEthernet 0/0/0
+    [Huawei-GigabitEthernet0/0/0] ip address  100.0.0.1 8
+    [Huawei-GigabitEthernet0/0/0]nat static global 100.0.0.2 inside 192.168.2.1
+    [Huawei-GigabitEthernet0/0/0]nat static global 100.0.0.3 inside 192.168.2.2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,78 @@
+基于域名的虚拟主机
+1.实现两个基于域名的虚拟主机，域名分别为www.a.com和www.b.com
+
+步骤一：修改配置文件
+1）修改Nginx服务配置，添加相关虚拟主机配置如下
+    [root@proxy ~]# vim /usr/local/nginx/conf/nginx.conf
+    .. ..
+    server {
+            listen       80;                                      //端口
+            server_name  www.a.com;                                //域名
+    auth_basic "Input Password:";                        //认证提示符
+            auth_basic_user_file "/usr/local/nginx/pass";        //认证密码文件
+    location / {
+                root   html;                                    //指定网站根路径
+                index  index.html index.htm;
+           }
+           
+    }
+    … …
+        server {
+            listen  80;                                        //端口
+            server_name  www.b.com;                                //域名
+    location / { 
+    root   www;                                 //指定网站根路径
+    index  index.html index.htm;
+    }
+    }
+
+
+2）创建网站根目录及对应首页文件
+    [root@proxy ~]# mkdir /usr/local/nginx/www
+    [root@proxy ~]# echo "www" > /usr/local/nginx/www/index.html
+
+3）重新加载配置
+    [root@proxy ~]# /usr/local/nginx/sbin/nginx -s reload
+
+
+
+1.基于端口的虚拟主机（参考模板）
+
+    server {
+            listen       8080;                        //端口
+            server_name  web1.example.com;          //域名
+            ......
+    }
+        server {
+            listen       8000;                         //端口
+            server_name  web1.example.com;           //域名
+          .......
+    }
+
+
+
+2.基于IP的虚拟主机（参考模板）
+
+    server {
+            listen       192.168.0.1:80;              //IP地址与端口
+            server_name  web1.example.com;          //域名
+      ... ...
+    }
+        server {
+            listen       192.168.0.2:80;             //IP地址与端口
+            server_name  web1.example.com;
+    ... ...
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+

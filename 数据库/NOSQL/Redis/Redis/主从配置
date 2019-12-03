@@ -1,0 +1,84 @@
+一.redis主从复制
+
+步骤一：将主机配置为主服务器
+1） 每台redis服务器，默认都是主服务器;所以主服务器不需要配置。
+	192.168.4.51:6351> info replication        //查看复制信息
+	# Replication
+	role:master            //是master 服务器  
+	connected_slaves:0    //从服务器个数零台
+
+步骤二：将主机配置为master的从服务器
+1）命令行配置（马上生效）
+	192.168.4.52:6352> slaveof  192.168.4.51  6351  //指定主服务器ip地址与端口
+
+2）永久配置（重新redis服务后，依然有效）
+	[root@redisB ~]# vim /etc/redis/6379.conf    
+	slaveof  192.168.4.51  6351    //在文件末尾添加或在原有配置项上修改都可以
+
+
+
+
+
+二.配置带验证的redis主从复制
+步骤一：设置主服务器设置连接密码123456
+1） 修改主服务器的配置文件，设置密码.
+	]# vim +501 /etc/redis/6379.conf 
+	requirepass  123456   //设置密码
+	]# vim +43  /etc/init.d/redis_6379  //修改脚本
+	$CLIEXEC -h 192.168.4.51 -p 6351 -a 123456  shutdown //添加密码	
+	]# /etc/init.d/redis_6379 stop //停止服务
+	]# /etc/init.d/redis_6379  start //启动服务
+	]# netstat -utnlp  | grep  :6351  //查看端口
+
+
+步骤二：配置从服务器
+1） 修改配置文件，设置主服务器连接密码。
+	]# /etc/init.d/redis_6379 stop //停止服务
+	]# vim +289 /etc/redis/6379.conf 
+	masterauth  123456   //设置密码
+	]# /etc/init.d/redis_6379  start //启动服务
+	]# netstat -utnlp  | grep  :6351  //查看端口
+
+2） 在从服务器本机连接服务，查看复制信息
+	192.168.4.52:6352> info replication   //查看复制信息
+
+
+
+
+可以在命令行中修改配置文件变量
+	192.168.4.52:6352>config set masterauth 123456 //设置slave主机访问master主机密码
+	192.168.4.52:6352>config get masterauth       //获取配置项值
+	192.168.4.52:6352>config rewrite	//命令行永久修改配置项
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,117 @@
+使用Tomcat部署虚拟主机
+    实现两个基于域名的虚拟主机，域名分别为：www.a.com和 www.b.com
+    使用www.a.com域名访问的页面根路径为/usr/local/tomcat/a/ROOT
+    使用www.b.com域名访问的页面根路径为/usr/local/tomcat/b/base
+    访问www.a.com/test时，页面自动跳转到/var/www/html目录下的页面
+    访问页面时支持SSL加密通讯
+    私钥、证书存储路径为/usr/local/tomcat/conf/cert
+    每个虚拟主机都拥有独立的访问日志文件
+    配置tomcat集群环境
+
+配置服务器虚拟主机
+1）修改server.xml配置文件，创建虚拟主机
+	]# vim /usr/local/tomcat/conf/server.xml
+	    <Host name="www.a.com" appBase="a" unpackWARS="true" autoDeploy="true">
+ 	   </Host>
+ 	   <Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+	    </Host>
+
+2）创建虚拟主机对应的页面根路径
+	]# mkdir -p  /usr/local/tomcat/{a,b}/ROOT
+	]# echo "AAA"   > /usr/local/tomcat/a/ROOT/index.html
+	]# echo "BBB" > /usr/local/tomcat/b/ROOT/index.html
+
+3）重启Tomcat服务器
+	]# /usr/local/tomcat/bin/shutdown.sh
+	]# /usr/local/tomcat/bin/startup.sh
+
+4）客户端设置host文件，并浏览测试页面进行测试
+	]# vim /etc/hosts
+	192.168.2.100      www.a.com  www.b.com
+
+
+修改www.b.com网站的首页目录为base
+1）使用docBase参数可以修改默认网站首页路径
+	~]# vim /usr/local/tomcat/conf/server.xml
+	    <Host name="www.a.com" appBase="a" unpackWARS="true" autoDeploy="true">
+ 	   </Host>
+	    <Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+	    <Context path="" docBase="base"/>
+  	  </Host>
+	]# mkdir  /usr/local/tomcat/b/base
+
+
+网页跳转
+1）当用户访问http://www.a.com/test打开/var/www/html目录下的页面
+	]# vim /usr/local/tomcat/conf/server.xml
+	<Host name="www.a.com" appBase="a" unpackWARS="true" autoDeploy="true">
+	<Context path="/test" docBase="/var/www/html/" />
+	</Host>
+	<Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+	<Context path="" docBase="base" />
+	</Host>
+	]# /usr/local/tomcat/bin/shutdown.sh
+	]# /usr/local/tomcat/bin/startup.sh
+
+
+配置Tomcat支持SSL加密网站
+1）创建加密用的私钥和证书文件
+	]# keytool -genkeypair -alias tomcat -keyalg RSA -keystore /usr/local/tomcat/keystore       //提示输入密码为:123456
+	//-genkeypair     生成密钥对
+	//-alias tomcat     密钥别名
+	//-keyalg RSA     定义密钥算法为RSA算法
+	//-keystore         定义密钥文件存储在:/usr/local/tomcat/keystore
+
+2)再次修改server.xml配置文件，创建支持加密连接的Connector
+	]# vim /usr/local/tomcat/conf/server.xml
+	<Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+	maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+	keystoreFile="/usr/local/tomcat/keystore" keystorePass="123456" clientAuth="false" sslProtocol="TLS" />
+	//备注，默认这段Connector被注释掉了，打开注释，添加密钥信息即可
+
+3）重启Tomcat服务器
+	]# /usr/local/tomcat/bin/shutdown.sh
+	]# /usr/local/tomcat/bin/startup.sh
+
+
+
+配置Tomcat日志
+1)为每个虚拟主机设置不同的日志文件
+	]# vim /usr/local/tomcat/conf/server.xml
+	<Host name="www.a.com" appBase="a" unpackWARS="true" autoDeploy="true">
+	<Context path="/test" docBase="/var/www/html/" />
+	#从默认localhost虚拟主机中把Valve这段复制过来，适当修改下即可
+	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="a_access" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+	</Host>
+	<Host name="www.b.com" appBase="b" unpackWARS="true" autoDeploy="true">
+	<Context path="" docBase="base" />
+	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="b_access" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+	</Host>
+
+2）重启Tomcat服务器
+	]# /usr/local/tomcat/bin/shutdown.sh
+	]# /usr/local/tomcat/bin/startup.sh
+
+3）查看服务器日志文件
+	]# ls /usr/local/tomcat/logs/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

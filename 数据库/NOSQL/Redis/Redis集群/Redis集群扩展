@@ -1,0 +1,66 @@
+步骤一 :添加master角色主机到集群里
+1）部署新redis服务器,装包，初始化，启用集群功能，重启服务
+
+步骤二：添加master角色主机到集群里
+1）在管理主机，添加master角色主机
+	]# redis-trib.rb  add-node  192.168.4.58:6358  192.168.4.53:6353  //执行添加命令
+
+2） 在管理主机，查看集群新消息
+	]# redis-trib.rb info 192.168.4.53:6353  //查看集群信息
+
+3）在管理主机，检测集群
+	]# redis-trib.rb check 192.168.4.53:6353    //检测集群
+
+4）在管理主机，重新分配hash槽
+	]# redis-trib.rb  reshard   192.168.4.53:6353  //集群中任一IP:端口都可以
+	How many slots do you want to move (from 1 to 16384)?4096   //拿出4096个hash 槽给主机192.168.4.58
+	What is the receiving node ID?  c5e0da48f335c46a2ec199faa99b830f537dd8a0   //主机192.168.4.58的id值
+	Source node #1:all      //从当前所有master服务器获取hash槽
+	Do you want to proceed with the proposed reshard plan (yes/no)?yes //同意以上配置
+
+5）在管理主机，查看集群信息
+	]# redis-trib.rb info 192.168.4.53:6353
+
+
+
+步骤三：添加slave角色主机到集群里
+1）部署新的redis服务器,装包，初始化，启用集群功能，重启服务
+
+2）在管理主机，添加slave角色主机
+	]# redis-trib.rb add-node  --slave 192.168.4.59:6359  192.168.4.51:6351  //执行添加命令 集群任一IP:端口都可
+	
+3） 在管理主机，查看集群新消息
+	]# redis-trib.rb  info  192.168.4.51:6351 //查看信息
+
+4）在管理主机，检测集群
+	]# redis-trib.rb check 192.168.4.53:6353    //检测集群
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

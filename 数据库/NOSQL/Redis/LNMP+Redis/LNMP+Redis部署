@@ -1,0 +1,63 @@
+步骤一：在主机192.168.4.57部署LNMP 环境
+1）安装源码nginx软件及php-fpm
+	]#yum  -y  install  gcc    pcre-devel   zlib-devel
+	]#yum   -y     install  php-fpm  //安装php-fpm 
+	]#tar  -zxvf  nginx-1.12.2.tar.gz  //解压
+	]#cd nginx-1.12.2  //进源码目录
+	]#./configure  //配置
+	]# make && make install   //编译安装
+	
+2）修改配置nginx.conf (支持PHP动态页面)
+	] # vim   +65  /usr/local/nginx/conf/nginx.conf
+	]#  /usr/local/nginx/sbin/nginx  -t     //测试修改
+
+3）启动服务
+	]#  systemctl  start php-fpm  //启动服务
+	]#  netstat  -utnlp  | grep  :9000  //查看端口
+
+4）测试配置
+	]# vim  /usr/local/nginx/html/test.php  //编写php文件
+	]# curl  http://localhost/test.php     //访问nginx服务
+
+
+
+步骤二：配置PHP支持redis
+
+1）安装php扩展
+	]# rpm -q php php-devel
+	]# yum -y  install php php-devel automake autoconf //安装依赖
+	
+	]# tar -zxf php-redis-2.2.4.tar.gz //安装扩展包
+	]# cd phpredis-2.2.4/
+	]# phpize            //生成配置文件php-config及 configure命令
+	Configuring for:
+	PHP Api Version:         20100412
+	Zend Module Api No:      20100525
+	Zend Extension Api No:   220100525
+	]# ./configure  --with-php-config=/usr/bin/php-config //配置
+	]# make //编译
+	]# make install //安装
+	
+2）修改php.ini文件
+	]#vim /etc/php.ini
+	728 extension_dir = "/usr/lib64/php/modules/"  //模块文件目录
+	730 extension = "redis.so"  //模块文件名
+
+	]# systemctl  restart php-fpm //重启php-fpm服务
+	]# php -m | grep  -i redis     //查看已加载的模块
+	redis
+
+步骤三：测试配置：编写网站脚本，把数据存储到redis服务器192.168.4.50
+
+
+
+
+
+
+
+
+
+
+
+
+

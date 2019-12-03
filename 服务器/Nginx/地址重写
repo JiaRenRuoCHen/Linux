@@ -1,0 +1,112 @@
+地址重写
+通过调整Nginx服务端配置，实现以下目标：
+1.所有访问a.html的请求，重定向到b.html;
+2.所有访问192.168.4.5的请求重定向至www.tmooc.cn；
+3.所有访问192.168.4.5/下面子页面，重定向至www.tmooc.cn/下相同的页面；
+4.实现firefox与curl访问相同页面文件，返回不同的内容。
+
+Nginx服务器的地址重写，主要用到的配置参数是rewrite：
+	rewrite regex replacement flag
+	rewrite 旧地址 新地址 [选项]
+案例：
+	访问http://www.360buy.com会自动跳转至http://www.jd.com。
+	访问http://www.baidu.com会自动跳转至https://www.baidu.com。
+
+rewrite 旧地址 新地址 [选项];
+last 不再读其他rewrite
+break 不再读其他语句，结束请求
+redirect 临时重定向		//修改URL地址栏
+permanent 永久重定向
+
+步骤一：修改配置文件
+1）修改Nginx服务配置：
+	]# vim /usr/local/nginx/conf/nginx.conf
+	    .. ..
+	    server {
+	            listen       80;
+            server_name  localhost;
+ 	   rewrite /a.html  /b.html;            
+	    location / {
+ 	       root   html;
+	    index  index.html index.htm;
+ 	   }
+ 	   }
+	]# echo "BB" > /usr/local/nginx/html/b.html
+
+2）重新加载配置文件
+	]# /usr/local/nginx/sbin/nginx  -s  reload
+
+3）客户端测试
+	]# firefox  http://192.168.4.5/a.html
+
+
+
+步骤二：访问a.html重定向到b.html（跳转地址栏）
+1）修改Nginx服务配置：
+	]# vim /usr/local/nginx/conf/nginx.conf
+ 	   .. ..
+ 	   server {
+	            listen       80;
+ 	           server_name  localhost;
+ 	   rewrite /a.html  /b.html  redirect;            
+	    location / {
+	        root   html;
+	    index  index.html index.htm;
+ 	   }
+ 	   }
+
+2）重新加载配置文件
+	]# /usr/local/nginx/sbin/nginx  -s  reload
+
+3）客户端测试（仔细观察浏览器地址栏的变化）
+
+
+
+步骤三：修改配置文件(访问192.168.4.5的请求重定向至www.tmooc.cn)
+1) 修改Nginx服务配置
+	]# vim /usr/local/nginx/conf/nginx.conf
+ 	   .. ..
+ 	   server {
+            listen       80;
+            server_name  localhost;
+  	  rewrite ^/  http://www.tmooc.cn/;		//支持正则匹配
+ 	   location / {
+        root   html;
+	    index  index.html index.htm;
+ 	   # rewrite /a.html  /b.html  redirect;
+ 	   }
+ 	   }
+
+2）重新加载配置文件
+	]# /usr/local/nginx/sbin/nginx  -s  reload
+
+
+步骤四：修改配置文件(访问192.168.4.5/下面子页面，重定向至www.tmooc.cn/下相同的页面)
+1) 修改Nginx服务配置
+	]# vim /usr/local/nginx/conf/nginx.conf
+ 	   .. ..
+	    server {
+            listen       80;
+            server_name  localhost;
+	    rewrite ^/(.*)$  http://www.tmooc.cn/$1;	//访问192.168.4.5/下面子页面，重定向至www.tmooc.cn/下相同的页面
+	    location / {
+ 	       root   html;
+	    index  index.html index.htm;
+	    }
+ 	   }
+
+2）重新加载配置文件
+	]# /usr/local/nginx/sbin/nginx  -s  reload
+
+
+3）客户端测试（真实机测试，真实机才可以连接tmooc）
+
+
+
+
+
+
+
+
+
+

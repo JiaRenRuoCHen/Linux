@@ -1,0 +1,48 @@
+步骤一：练习sharding-by-intfile分片规则的使用
+1）查看配置文件，得知使用sharding-by-intfile分片规则的表名
+	[root@mycat56 ~]# vim /usr/local/mycat/conf/schema.xml
+	<table name="employee" primaryKey="ID" dataNode="dn1,dn2,dn
+	rule="sharding-by-intfile" />
+
+2）查看规则文件，得知sharding-by-intfile分片规则使用的函数
+	]# vim /usr/local/mycat/conf/rule.xml
+	<tableRule name="sharding-by-intfile">
+                <rule>
+                        <columns>sharding_id</columns>  //数据分片字段名
+                        <algorithm>hash-int</algorithm> //使用的函数名
+                </rule>
+	</tableRule>
+	<function name="hash-int"
+                class="io.mycat.route.function.PartitionByFileMap">
+                <property name="mapFile">partition-hash-int.txt</property> //函数调用的配置文件
+	</function>
+
+3）修改函数配置文件,添加dn3 数据节点
+	]# vim  /usr/local/mycat/conf/partition-hash-int.txt
+	10000=0   //当sharding_id字段的值是10000时,数据存储在数据节点dn1里
+	10010=1   //当sharding_id字段的值是10010时,数据存储在数据节点dn2里
+	10020=2   //当sharding_id字段的值是10020时,数据存储在数据节点dn3里
+
+4）重启mycat服务，使其修改有效	
+	]# /usr/local/mycat/bin/mycat  stop    //停止服务
+	]# /usr/local/mycat/bin/mycat  start  //启动服务
+	]# netstat -utnlp  | grep  :8066 //有端口
+	]# ps –C  java //有进程
+
+5）客户端连接分片服务器，存取数据 (根据配置文件要求建库建表)
+	]#mysql -h192.168.4.56 -P8066 -uroot -p123456 //访问服务
+	mysql> use TESTDB; //进入TESTDB库
+	mysql> create table  employee( ID int primary key , sharding_id int,
+ 	   -> name char(15) , age  int ); //建表
+
+
+
+
+
+
+
+
+
+
+
+

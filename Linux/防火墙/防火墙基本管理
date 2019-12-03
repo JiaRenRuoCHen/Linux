@@ -1,0 +1,188 @@
+iptables基本管理
+步骤一：关闭firewalld，启动iptables服务
+1）关闭firewalld服务器
+	]# systemctl stop firewalld.service 
+	]# systemctl disable firewalld.service
+
+2）安装iptables-services并启动服务
+	]# yum -y install iptables-services
+	]# systemctl start iptables.service
+
+
+步骤二：熟悉iptables框架
+1）iptables的4个表（区分大小写）：
+iptables默认有4个表，nat表（地址转换表）、filter表（数据过滤表）、raw表（状态跟踪表）、mangle表（包标记表）。
+
+2）iptables的5个链（区分大小写）：
+INPUT链（入站规则）
+OUTPUT链（出站规则）
+FORWARD链（转发规则）
+PREROUTING链（路由前规则）
+POSTROUTING链（路由后规则）
+
+    filter        数据包过滤功能。只涉及INPUT, FORWARD, OUTPUT三条链。是iptables命令默认操纵的表。
+    nat          地址转换功能。NAT转换只涉及PREROUTING, OUTPUT, POSTOUTING三条链。可通过转发让局域网机器连接互联网
+    mangle     数据包修改功能。每条链上都可以做修改操作。修改报文元数据，做防火墙标记等。
+    raw          快速通道功能。为了提高效率，优先级最高，符合raw表规则的数据包会跳过一些检查。
+    security    需要和selinux结合使用，内置规则比较复杂，通常都会被关闭
+
+
+1）iptabels语法格式
+	]# iptables  [-t 表名]  选项  [链名]  [条件]  [-j 目标操作]
+
+//注意事项与规律：
+//可以不指定表，默认为filter表
+//可以不指定链，默认为对应表的所有链
+//如果没有找到匹配条件，则执行防火墙默认规则
+//选项/链名/目标操作用大写字母，其余都小写
+
+//目标操作：
+// ACCEPT：允许通过/放行
+// DROP：直接丢弃，不给出任何回应
+// REJECT：拒绝通过，必要时会给出提示
+// LOG：记录日志，然后传给下一条规则
+
+COMMAND 命令选项
+-A|--append  CHAIN                                 //链尾添加新规则
+-D|--delete  CHAIN [RULENUM]                       //删除链中规则，按需序号或内容确定要删除的规则
+-I|--insert  CHAIN [RULENUM]                       //在链中插入一条新的规则，默认插在开头
+-R|--replace CHAIN  RULENUM                        //替换、修改一条规则，按序号或内容确定
+-L|--list   [CHAIN [RULENUM]]                      //列出指定链或所有链中指定规则或所有规则
+-S|--list-urles [CHAIN [RULENUM]]                  //显示链中规则
+-F|--flush [CHAIN]                                 //清空指定链或所有链中规则
+-Z|--zero [CHAIN [RULENUM]]                        //重置指定链或所有链的计数器(匹配的数据包数和流量字节数)
+-N|--new-chain CHAIN                               //新建自定义规则链
+-X|--delete-cahin [CHAIN]                          //删除指定表中用户自定义的规则链
+-E|--rename-chain OLDCHAIN NEWCHAIN                //重命名链，移动任何引用
+-P|-policy CHAIN TARGET                            //设置链的默认策略，数据包未匹配任意一条规则就按此策略处理
+
+
+CRETIRIA 条件匹配  
+分为基本匹配和扩展匹配，扩展匹配又分为隐式匹配和显示匹配
+基本匹配
+-p|--proto  PROTO                      //按协议匹配，如tcp、udp、icmp，all表示所有协议。 （/etc/protocols中的协议名）
+-s|--source ADDRESS[/mask]...          //按数据包的源地址匹配，可使用IP地址、网络地址、主机名、域名
+-d|--destination ADDRESS[/mask]...     //按目标地址匹配，可使用IP地址、网络地址、主机名、域名
+-i|--in-interface INPUTNAME[ +]        //按入站接口(网卡)名匹配，+用于通配。如 eth0, eth+ 。一般用在INPUT和PREROUTING链
+-o|--out-interface OUTPUTNAME[+]       //按出站接口(网卡)名匹配，+用于通配。如 eth0, eth+ 。一般用在OUTPUT和POSTROUTING链
+
+可使用 ! 可以否定一个子句，如-p !tcp
+
+-m tcp   //-p tcp的扩展
+　　　　--sport  [!]N[:M]                      //源端口, 服务名、端口、端口范围。
+　　　　--dport  [!]N[:M]                      //目标端口，服务名、端口、端口范围
+　　　　--tcp-flags CHECKFLAGS FLAGSOFTRUE  //TCP标志位:SYN(同步),ACK(应答),RST(重置),FIN(结束),URG(紧急),PSH(强迫推送)。多个标志位逗号分隔。
+　　　　　　　　　　　　　　　　　　　　　　　　　//CHECKFLAGS为要检查的标志位，FLAGSOFTRUE为必须为1的标志位（其余的应该为0）
+　　　　--syn                               //第一次握手。 等效于 --tcpflags syn,ack,fin,rst syn   四个标志中只有syn为1
+-m udp   //-p udp的扩展
+　　　　--sport N[-M] 
+　　　　--dport N[-M]
+-m icmp  //隐含条件为-p icmp
+　　　　--icmp-type  N             //8:echo-request  0:echo-reply
+
+
+
+-m state
+　　　　--state    //连接状态检测，NEW,ESTABLISHED,RELATED,INVALID
+-m multiport 
+　　　　--source-ports   PORT[,PORT]...|N:M            //多个源端口，多个端口用逗号分隔，
+　　　　--destination-ports PORT[,PORT]...|N:M         //多个目的端口
+　　　　--ports     　　　　　　　　　　　　　　　　　　　　 //多个端口，每个包的源端口和目的端口相同才会匹配
+-m limit
+　　　　--limit   N/UNIT    //速率，如3/minute, 1/s, n/second , n/day
+　　　　--limit-burst N     //峰值速率，如100，表示最大不能超过100个数据包
+-m connlimit
+　　　　--connlimit-above N  //多于n个，前面加!取反
+-m iprange
+　　　　--src-range IP-IP
+　　　　--dst-range IP-IP
+-m mac                    
+　　　　--mac-source         //mac地址限制，不能用在OUTPUT和POSTROUTING规则链上，因为封包要送到网卡后，才能由网卡驱动程序透过ARP 通讯协议查出目的地的MAC 地址
+-m string
+　　　　--algo [bm|kmp]      //匹配算法
+　　　　--string "PATTERN"   //匹配字符模式
+-m recent
+　　　　--name               //设定列表名称，默认为DEFAULT
+　　　　--rsource            //源地址
+　　　　--rdest              //目的地址
+　　　　--set                //添加源地址的包到列表中
+　　　　--update             //每次建立连接都更新列表
+　　　　--rcheck             //检查地址是否在列表
+　　　　--seconds            //指定时间。必须与--rcheck或--update配合使用
+　　　　--hitcount           //命中次数。必须和--rcheck或--update配合使用
+　　　　--remove             //在列表中删除地址
+-m time
+　　　　--timestart h:mm
+　　　　--timestop  hh:mm
+　　　　--days DAYS          //Mon,Tue,Wed,Thu,Fri,Sat,Sun; 逗号分隔
+-m mark
+　　　　--mark N            //是否包含标记号N
+-m owner 
+　　　　--uid-owner 500   //用来匹配来自本机的封包，是否为某特定使用者所产生的,可以避免服务器使用root或其它身分将敏感数据传送出
+　　　　--gid-owner O     //用来匹配来自本机的封包，是否为某特定使用者群组所产生的
+　　　　--pid-owner 78    //用来匹配来自本机的封包，是否为某特定进程所产生的
+　　　　--sid-owner 100   //用来匹配来自本机的封包，是否为某特定连接（Session ID）的响应封包
+
+
+ACTION 目标策略(TARGET)
+
+-j|--jump TARGET                //跳转到目标规则，可能加载target extension
+-g|--goto  CHAIN                //跳转到指定链，不再返回
+
+    ACCEPT             规则验证通过，不再检查当前链的后续规则，直接跳到下一个规则链。
+    DROP                直接丢弃数据包，不给任何回应。中断过滤。
+    REJECT             拒绝数据包通过，会返回响应信息。中断过滤。
+        --reject-with  tcp-reset|port-unreachable|echo-reply
+    LOG                  在/var/log/messages文件中记录日志，然后将数据包传递给下一条规则。详细位置可查看/etc/syslog.conf配置文件
+        --log-prefix "INPUT packets"
+    ULOG                更广范围的日志记录信息
+    QUEUE              防火墙将数据包移交到用户空间，通过一个内核模块把包交给本地用户程序。中断过滤。
+    RETURN            防火墙停止执行当前链中的后续规则，并返回到调用链。主要用在自定义链中。
+    custom_chain    转向自定义规则链
+    DNAT                目标地址转换，改变数据包的目标地址。外网访问内网资源，主要用在PREROUTING。完成后跳到下一个规则链
+        --to-destination ADDRESS[-ADDRESS][:PORT[-PORT]]
+    SNAT                源地址转换，改变数据包的源地址。内网访问外网资源。主机的IP地址必须是静态的，主要用在POSTROUTING。完成后跳到下一个规则链。
+        --to-source ADDRESS[-ADDRESS][:PORT[-PORT]]
+    MASQUERADE   源地址伪装，用于主机IP是ISP动态分配的情况，会从网卡读取主机IP。直接跳到下一个规则链。
+        --to-ports 1024-31000
+    REDIRECT        数据包重定向，主要是端口重定向，把包分流。处理完成后继续匹配其他规则。能会用这个功能来迫使站点上的所有Web流量都通过一个Web高速缓存，比如Squid。
+        --to-ports 8080
+    MARK                 打防火墙标记。继续匹配规则。
+        --set-mark 2
+MIRROR           发送包之前交换IP源和目的地址，将数据包返回。中断过滤。
+
+
+
+辅助选项
+-t|--table TABLE     //指定操作的表，默认的表为filter
+-n|--numeric         //用数字形式显示地址和端口，显示主机IP地址而不是主机名
+-x|--exact           //计数器显示精确值，不做单位换算
+-v|--verbose  (x3)   //查看规则列表时，显示更详细的信息
+-line-numbers        //查看规则表时，显示在链中的序号
+-V|--version 
+-h|--help   
+[option]  --help     //查看特定选项的帮助，如iptables -p icmp --help
+
+--fragment -f               //match second or further fragments only
+--modprobe=<command>        //try to insert modules using this command
+--set-counters PKTS BYTES   //set the counter during insert/append
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

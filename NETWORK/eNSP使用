@@ -1,0 +1,81 @@
+eNSP软件与交换机命令行
+步骤一：改变命令行视图
+	<Huawei>system-view             //进入系统视图
+	[Huawei]interface Ethernet0/0/1    //进入接口视图
+	[Huawei-Ethernet0/0/1]quit    //返回上一视图
+	[Huawei]
+	[Huawei]interface Ethernet0/0/1    //再次进入接口视图
+	[Huawei-Ethernet0/0/1]return     //返回用户视图
+
+访问及配置交换机
+步骤一：修改交换机主机名
+进入系统视图后，使用sysname指令可以为交换机设置主机名。例如，以下操作可以将主机名设置为SW1
+	<Huawei>system-view 
+	[Huawei]sysname SW1
+
+步骤二：显示VRP版本
+	[Huawei]display version 
+
+步骤三：查看交换机配置
+查看ios名称及版本信息
+	[Huawei]display current-configuration 
+
+步骤四：使用账户和密码登录终端
+	<Huawei>system-view 
+	[Huawei]aaa                    //进入aaa认证
+	[Huawei-aaa]local-user admin01 password cipher 123    //创建账户叫admin01,密码123       
+	[Huawei-aaa]quit
+	[Huawei]user-interface console 0        
+	[Huawei-ui-console0]authentication-mode aaa        //激活配置
+
+步骤五：保存交换机的配置
+	<Huawei>save        
+	The current configuration will be written to the device.
+	Are you sure to continue?[Y/N]y                    //这里按y确认
+
+步骤六：恢复设备出厂默认值
+	<Huawei>reset saved-configuration     //重置配置文件
+	Warning: The action will delete the saved configuration in the device.
+	The configuration will be erased to reconfigure. Continue? [Y/N]:y    //是否擦除，回答y
+
+	<Huawei>reboot        //重启设备
+	Info: The system is now comparing the configuration, please wait.
+	Warning: All the configuration will be saved to the configuration file for the n
+	ext startup:, Continue?[Y/N]:n            //提示是否再次保存，选择n
+	Info: If want to reboot with saving diagnostic information, input 'N' and then e
+	xecute 'reboot save diagnostic-information'.
+	System will reboot! Continue?[Y/N]:y    //是否重启，选择y
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

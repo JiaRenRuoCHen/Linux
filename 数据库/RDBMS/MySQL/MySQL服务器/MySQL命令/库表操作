@@ -1,0 +1,434 @@
+1. SQL命令的使用规则
+
+　　1. 每条命令必须以;结尾
+　　2. SQL命令不区分字母大小写
+　　3. 使用 \c 来终止当前命令的执行
+2. 库的管理
+
+　　1. 库的基本操作
+　　　　1. 查看已有库
+　　　　　　show databases;
+　　　　2. 创建库
+　　　　　　create database 库名；
+　　　　　　create database 库名 character set utf8;创建库时指定字符集
+　　　　3. 查看创建库的语句(字符集)
+　　　　　　show create database 库名；
+　　　　4. 查看当前所在库
+　　　　　　select database();
+　　　　5.切换库
+　　　　　　use 库名；
+　　　　6. 查看库中已有表
+　　　　　　show tables;
+　　　　7. 删除库
+　　　　　　drop database 库名；
+
+　　2. 库名的命名规则
+　　　　1. 数字、字母、下划线，但是不能使用纯数字
+　　　　2. 库名区分字母大小写
+　　　　3. 不能使用特殊字符和mysql关键字
+3. 表的管理
+
+　　行为记录 列为字段
+　　1. 表的基本操作
+　　　　1. 创建表(指定字符集)
+　　　　　　create table 表名(
+　　　　　　字段名 数据类型，
+　　　　　　字段名 数据类型，
+　　　　　　...
+　　　　　　字段名 数据类型
+　　　　　　)；
+　　　　2. 查看已有表的字符集
+　　　　　　show create table 表名；
+　　　　3. 查看表结构
+　　　　　　desc 表名
+　　　　4. 删除表
+　　　　　　drop table 表名;
+
+　　2. 注意 
+
+　　　　1. 所有的数据都是以文件的形式存放在数据库目录下
+　　　　2. 数据库目录：/var/lib/mysql
+　　　　MySQL 是基于硬盘读写的
+
+　　3. Mac安装MySQL
+　　　　1. cd
+　　　　2. vi .bash_profile
+　　　　　　添加：PATH="$PATH":/usr/local/mysql/bin
+　　　　3. source .bash_profile
+4. 表记录管理
+
+　　1. 插入
+　　　　1. insert into 表名 values(值1),(值2)，...; #一个()表示一条记录
+　　　　2. insert into 表名(字段1, ...) values(值1)，...;
+　　2. 查询
+　　　　1. select * from 表名;
+　　　　　　select * from 表名 where 条件；
+　　　　　　　　例如： select * from t1 where score >= 60;
+　　　　2. select 字段名1，字段名2 from 表名 [where 条件]
+
+　　3. 练习
+　　　　1. 查看所有的库
+　　　　　　show databases;
+　　　　2. 创建新库 studb
+　　　　　　create database studb;
+　　　　3. 在 studb 中创建表tab1, 指定字符集utf8, 字段有 id 、name 、age
+　　　　　　create table tab1(
+　　　　　　id int,
+　　　　　　name char(15),
+　　　　　　age int
+　　　　　　)character set utf8;
+　　　　4. 查看tab1的表结构
+　　　　　　desc tab1;
+　　　　5. 在tab1中随便插入两条记录
+　　　　　　insert into tab1 values
+　　　　　　(1, '张三丰', 100),(2, '张无忌', 30);
+　　　　6. 在tab1中的name 、age两个字段插入2条记录
+　　　　　　insert into tab1(name, age) values
+　　　　　　('金毛狮王', 88),('紫衫龙王', 87);
+　　　　7. 查看tab1中的所有记录
+　　　　　　select * from tab1;
+　　　　8. 查看tab1表中所有人的姓名和年龄
+　　　　　　select name,age from tab1;
+　　　　9. 查看tab1表中年龄大于20的信息
+　　　　　　select * from tab1 where age > 20;
+
+　　4. 如何更改默认字符集
+　　　　1. 方法(通过更改MySQL配置文件实现)
+　　　　2. 步骤
+　　　　　　1. 获取root权限
+　　　　　　　　sudo -i
+　　　　　　2. cd /etc/mysql/mysql.conf.d/
+　　　　　　3. 备份 ：cp mysqld.cnf mysqld.conf.bak
+　　　　　　4. subl mysqld.cnf
+　　　　　　　　[mysqld]
+　　　　　　　　character_set_server = utf8
+　　　　　　5. 重启MySQL服务
+　　　　　　　　/etc/init.d/mysql restart
+
+　　　　　　　　MAC: /etc/my.cnf
+　　　　　　　　[mysqld]
+　　　　　　　　character_set_server = utf8
+
+　　　　　　6. 客户端把数据存储到数据库服务器上的过程
+　　　　　　　　1. 连接到数据服务器 mysql -uroot -p123456
+　　　　　　　　2. 选择一个库 use 库名
+　　　　　　　　3. 创建表/修改表 update 表名...
+　　　　　　　　4. 断开与数据库连接 exit; | quit; | \q;
+5. 数据类型
+
+　　1. 数值类型
+　　　　1. 整型
+　　　　　　1. int 大整型(4个字节)
+　　　　　　　　取值范围：2**32 - 1 (42亿多)
+　　　　　　2. tinyint 微小整型(1个字节)
+　　　　　　　　1. 有符号(signed默认): -128 ~ 127
+　　　　　　　　2. 无符号(unsigned): 0 ~ 255
+　　　　　　　　　　age tinyint unsigned,
+　　　　　　3. smallint 小整型(2个字节)
+　　　　　　4. bigint 极大整型(8个字节)
+　　　　2. 浮点型
+　　　　　　1. float(4个字节，最多显示7个有效位)
+　　　　　　　　1. 用法
+　　　　　　　　　　字段名 float(m, n) m->总位数 n->小数位位数
+　　　　　　　　　　float(5,2)取值范围？ -999.99 ~ 999.99
+　　　　　　2. decimal(最多显示28个有效位)
+　　　　　　　　1. decimal(m,n)
+　　　　　　　　2. 存储空间(整数、小数分开存储)
+　　　　　　　　　　规则：将9的倍数包装成4个字节
+　　　　　　　　　　余数         字节
+　　　　　　　　　　 0               0
+　　　　　　　　　　1-2             1
+　　　　　　　　　　3-4             2
+　　　　　　　　　　5-6             3
+　　　　　　　　　　7-9             4
+　　　　　　　　示例：decimal(19,9)
+　　　　　　　　　　整数部分： 10/9 = 商1余1 4个字节+1个字节=5个字节
+　　　　　　　　　　小数部分： 9/9 =商1余0 4个字节+0个字节=4个字节
+　　　　　　　　　　占：9字节
+　　　　　　3.练习
+　　　　　　　　1. 创建库studb2, 并在库中创建表 stuinfo, 要求：
+　　　　　　　　　　id: 大整型
+　　　　　　　　　　name: 字符类型，宽度为15
+　　　　　　　　　　age: 微小整型，不能为负数
+　　　　　　　　　　height：浮点型，小数位为2位(float)
+　　　　　　　　　　money: 浮点型，小数位为2位(decimal)
+　　　　　　　　　　create database studb2;
+
+　　　　　　　　　　use studb2;
+
+　　　　　　　　　　create table stuinfo(
+　　　　　　　　　　id int,
+　　　　　　　　　　name char(15),
+　　　　　　　　　　age tinyint unsigned,
+　　　　　　　　　　height float(3,2)
+　　　　　　　　　　money decimal(20,2));
+　　　　　　　　2. 查看stuinfo的表结构
+　　　　　　　　　　desc stuinfo;
+　　　　　　　　3. 查看stuinfo的默认字符集
+　　　　　　　　　　show create table stuinfo;
+　　　　　　　　4. 在表中插入1条完整记录
+　　　　　　　　　　desc stuinfo;
+　　　　　　　　　　insert into stuinfo values
+　　　　　　　　　　(1, '小张', 20, 1.78, 888888888888888888.88)；
+　　　　　　　　5. 查询所有表记录
+　　　　　　　　　　select * from stuinfo;
+　　　　　　　　6. 在表中id、name两个字段插入两条记录
+　　　　　　　　　　insert into stuinfo(id, name) values
+　　　　　　　　　　(2, '小李');
+　　　　　　　　7. 查询所有学生的id和姓名
+　　　　　　　　　　select id, name from stuinfo;
+
+　　2. 字符类型
+　　　　1. char(定常)
+　　　　　　1. 取值范围：1~255
+　　　　2. varchar(变长)
+　　　　　　1. 取值范围: 1~65535
+　　　　3. text / longtext(4G) / blob / longblob(4G)
+　　　　4. char和varchar的特点
+　　　　　　1. char: 浪费存储空间，性能高
+　　　　　　2. varchar: 节省存储空间，性能低
+
+　　　　5. 字符类型宽度和数值类型宽度的区别
+
+　　　　　　1. 数值类型宽度位显示宽度，只用于select 查询显示，和占用存储无关，可用zerofill查看效果
+
+　　　　　　2. 字符类型的宽度超过之后则无法存储
+
+　　3. 枚举类型
+
+　　　　1. 单选(enum) ：字段名 enum(值1，值2，...)
+　　　　2. 多选(set) : 字段名 set(值1， 值2，...)
+　　　　　　# 插入记录时：“F,study,Python"
+　　　　　　create table t5(
+　　　　　　id int(3) zerofill,
+　　　　　　name varchar(15),
+　　　　　　sex enum("M", "F", 'Secret'),
+　　　　　　likes set("F","M",'Study',"Python")
+　　　　　　);
+　　　　　　insert into t5(likes) values("F,Study,Python")
+　　    4. 日期时间类型
+　　　　   1. date: "YYYY-MM-DD"
+　　　　   2. time: "HH:MM:SS"
+　　　　   3. datetime:"YYYY-MM-DD HH:MM:SS"
+　　　　   4. timestamp:"YYYY-MM-DD HH"
+　　    5. 注意
+　　　　   1. datetime: 不给值默认返回NULL值
+　　　　   2. timestamp: 不给值默认返回系统当前时间
+　　　　      create table t7(
+　　　　      id int,
+　　　　      name varchar(15),
+　　　      　birthday date,
+　　　　      money int,
+　　　　      shijian datetime
+　　　　        );
+
+　　　　insert into t7 values(2,'王', date(now()),10000,now());
+　　　　    3. 日期时间函数
+　　　　　　　　1. now() 返回服务器当前时间
+　　　　　　　　2. curdate() 返回当前日期
+　　　　　　　　3. curtime() 返回当前时间
+　　　　　　　　4. year(date) 返回指定时间的年份
+　　　　　　　　5. date(date) 返回指定时间的日期
+　　　　　　　　6. time(date) 返回指定时间的时间
+
+
+6. 表字段的操作
+
+　　1. 语法： alter table 表名 执行动作；
+　　2. 添加字段(add)
+　　　　alter table 表名 add 字段名 数据类型；
+　　　　alter table 表名 add 字段名 数据类型 first；
+　　　　alter table 表名 add 字段名 数据类型 after 字段名；
+　　3. 删除字段(drop)
+　　　　alter table 表名 drop 字段名；
+　　4. 修改数据类型(modify)
+　　　　alter table 表名 modify 字段名 新数据类型;
+　　5. 表重命名
+　　　　alter table 表名 rename 新表名;
+　　6. 练习
+　　　　1. 创建库 studb2
+　　　　　　create database studb2;
+　　　　2. 在库中创建表 t1, 字段有3个:name, age, phnumber
+　　　　　　use studb2;
+　　　　　　create table t1(
+　　　　　　name char(15),
+　　　　　　age tinyint unsigned,
+　　　　　　phnumber int);
+　　　　3. 查看表结构
+　　　　　　desc t1;
+　　　　4. 在表中第一列添加一个id 字段
+　　　　　　alter table t1 add id int first;
+　　　　5. 把 phnumber 的数据类型改为 bigint
+　　　　　　alter table t1 modify phnumber bigint;
+　　　　6. 在表中最后一列添加一个字段 address
+　　　　　　alter table t1 add address char(100);
+　　　　7. 删除表中的 age 字段
+　　　　　　alter table t1 drop age;
+　　　　8. 查看表结构
+　　　　　　desc t1;
+7. 表记录管理
+
+　　1. 删除表记录
+　　　　1. delete from 表名 where 条件;
+　　　　2. 注意
+　　　　　　delete 语句后如果不加where条件，所有记录全部清空
+　　2. 更新表记录
+　　　　1. update 表名 set 字段1=值1，字段2=值2，... where 条件;
+　　　　2.注意
+　　　　　　必须加where条件
+
+　　3. 练习
+　　　　1. 查找所有蜀国人的信息
+　　　　　　select * from hero where country='蜀国';
+　　　　2. 查找所有女英雄的姓名、性别和国家
+　　　　　　select name,sex,country from hero where sex='女';
+　　　　3. 把id位2的记录改为典韦，性别男，国家魏国
+　　　　　　update hero set name='典韦', sex='男', country='魏国' where id=2;
+　　　　4. 删除所有蜀国英雄
+　　　　　　delete from hero where country = '蜀国';
+　　　　5. 把貂蝉的国籍改为魏国
+　　　　　　update hero set country='魏国' where name='貂蝉';
+　　　　6. 删除所有表记录
+　　　　　　delete from hero;
+8. 运算符操作
+
+　　1. 数值比较/字符比较
+　　　　1. 数值比较 ： = != > >= < <=
+　　　　2. 字符比较 ： = !=
+　　　　3 练习
+　　　　　　1. 查找攻击力高于150的英雄的名字和攻击值
+　　　　　　　　select name,gongji from sanguo where gongji > 150;
+　　　　　　2. 将赵云的攻击力设置位360，防御力设置位68
+　　　　　　　　update sanguo set gongji=360, fangyu=68 where name='赵云';
+
+　　2. 逻辑比较
+　　　　1. and(两个或多个条件同时成立)
+　　　　2. or(任意一个条件成立即可)
+　　　　3. 练习
+　　　　　　1. 找出攻击值高于200的蜀国英雄的名字、攻击力
+　　　　　　　　select name,gongji from sanguo where gongji > 200 and country='蜀国';
+　　　　　　　　select name as n, gongji as g from sanguo where gongji > 200 and country='蜀国';
+　　　　　　2. 将吴国英雄中攻击值位110的英雄的攻击值改为100，防御力改为60
+　　　　　　　　update sanguo set gongji=100, fangyu=60 where country='吴国' and gongji=110;
+　　　　　　3. 查找蜀国和魏国的英雄信息
+　　　　　　　　select * from sanguo where country='蜀国' or country='魏国';
+
+　　3. 范围内比较
+　　　　1. between 值1 and 值2
+　　　　2. where 字段名 in(值1, 值2, ...)
+　　　　3. where 字段名 not in(值1, 值2, ...)
+
+　　　　4. 练习
+　　　　　　1. 查找攻击值100-200的蜀国英雄信息
+　　　　　　　　select * from sanguo where gongji between 100 and 200 and country='蜀国';
+　　　　　　2. 找到蜀国和吴国以外的国家的女英雄信息
+　　　　　　　　select * from sanguo where country not in('蜀国', '吴国') and sex='女';
+　　　　　　3. 找到id 位1、3或5的蜀国英雄和貂蝉的信息
+　　　　　　　　select * from sanguo where (id in(1,3,5) and country='蜀国') or name='貂蝉';
+
+　　4. 匹配空、非空
+　　　　1. 空：where name is null
+　　　　2. 非空：where name is not null
+
+　　　　3. 示例：
+　　　　　　1. 姓名位NULL值的蜀国女英雄
+　　　　　　　　select * from sanguo
+　　　　　　　　where name is null and country='蜀国' and sex = '女';
+　　　　　　2. 姓名位“”的英雄信息
+　　　　　　　　select * from sanguo where name="";
+　　　　4. 注意
+　　　　　　1. NULL：空值，只能用is 或者 is not 去匹配
+　　　　　　2. "" ：空字符串，用 = 或者 != 去匹配
+
+　　5. 模糊比较
+　　　　1. where 字段名 like 表达式
+　　　　2. 表达式
+　　　　　　1. _: 匹配单个字符
+　　　　　　2. %：匹配0到多个字符
+
+　　　　3. 示例
+　　　　　　select name from sanguo where name like "_%_";
+　　　　　　select name from sanguo where name like "%";
+　　　　　　# NULL 不会被统计，只能用is、is not 去匹配
+　　　　　　select name from sanguo where name like "___";
+　　　　　　select name from sanguo where name like "赵%";
+9. SQL查询
+
+　　1. 总结
+　　　　3.select ... 聚合函数 from 表名
+　　　　1. where ...
+　　　　2. group by ...
+　　　　4. having ...
+　　　　5. order by ...
+　　　　6. limit ...;
+
+　　2. order by
+　　　　1. 给查询结果进行排序
+　　　　2. ... order by 字段名 升序/降序
+　　　　3. 升序：ASC
+　　　　　降序：DESC
+
+　　　　4. 示例
+　　　　　　1. 将英雄按防御值从高到低排序
+　　　　　　　　select * from sanguo order by fangyu desc;
+
+　　　　　　2. 将蜀国英雄按攻击值从高到低排序
+　　　　　　　　select * from sanguo order by gongji desc;
+
+　　　　　　3. 将魏蜀两国英雄中名字为三个字的按防御值升序排列
+　　　　　　　　select * from sanguo where country in('魏国', '蜀国') and name like '___' order by fangyu;
+
+　　3. limit(永远放在SQL语句的最后写)
+　　　　1. 作用：限制显示查询记录的个数
+　　　　2. 用法
+　　　　　　1. limit n -> 显示n条记录
+　　　　　　2. limit m, n
+　　　　　　　　m 表示 从第m+1条记录开始显示，显示 n 条
+　　　　　　　　limit 2, 3 : 第 3、4、5 三条记录
+
+　　　　3. 示例
+　　　　　　1. 在蜀国英雄中，查找防御值倒数第二名至倒数第四名的英雄的记录
+　　　　　　　　select * from sanguo
+　　　　　　　　where country='蜀国'
+　　　　　　　　order by fangyu asc
+　　　　　　　　limit 1, 3;
+
+　　　　　　2. 在蜀国英雄中，查找攻击值前3名且名字不为 NULL的英雄的姓名、攻击值和国家
+　　　　　　　　select name,gongji,country from sanguo
+　　　　　　　　where country="蜀国" and name is not null
+　　　　　　　　order by gongji desc
+　　　　　　　　limit 3;
+
+　　　　4. 分页
+　　　　　　每页显示5条记录，显示第4页的内容
+
+　　　　　　第1页： limit 0,5 # 1 2 3 4 5
+　　　　　　第2页： limit (2-1)*5,5 # 6 7 8 9 10
+　　　　　　第3页： limit (3-1)*5,5 # 11 12 13 14 15
+　　　　　　第4页； limit (4-1)*5,5 # 16 17 18 19 20
+　　　　　　.....
+　　　　　　每页显示n条记录，显示第m页：limit (m-1)*n, n
+
+　　4. 聚合函数
+　　　　1. 分类
+　　　　　　avg(字段名) : 求该字段平均值
+　　　　　　sum(字段名): 求和
+　　　　　　max(字段名)：求最大值
+　　　　　　min(字段名): 求最小值
+　　　　　　count(字段名): 统计该字段记录的个数
+
+　　　　2. 示例
+　　　　　　1. 攻击最强值是多少
+　　　　　　　　select avg(gongji) from MOSHOU.sanguo;
+　　　　　　　　select avg(gongji) as best from MOSHOU.sanguo;
+
+　　　　　　　　select max(gongji) from MOSHOU.sanguo;
+
+　　　　　　2. 统计id、name两个字段分别有几条记录
+　　　　　　　　select count(id), count(name) from sanguo;
+　　　　　　　　## 空值 NULL 不会被统计
+
+　　　　　　3. 计算蜀国英雄的总攻击力
+　　　　　　　　select sum(gongji) from MOSHOU.sanguo where country='蜀国';
+　　　　　　4. 统计蜀国英雄中攻击值大于200的英雄的数量
+　　　　　　　　select count(*) from MOSHOU.sanguo where country='蜀国' and gongji > 200;

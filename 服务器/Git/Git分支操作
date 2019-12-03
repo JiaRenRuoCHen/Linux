@@ -1,0 +1,73 @@
+Git分支操作
+Git支持按功能模块、时间、版本等标准创建分支，分支可以让开发分多条主线同时进行，每条主线互不影响
+MASTER分支（MASTER是主分支，是代码的核心）。
+DEVELOP分支（DEVELOP最新开发成果的分支）。
+RELEASE分支（为发布新产品设置的分支）。
+HOTFIX分支（为了修复软件BUG缺陷的分支）。
+FEATURE分支（为开发新功能设置的分支）。
+
+步骤一：查看并创建分支
+1）查看当前分支。
+	project]# git status
+	project]# git branch -v
+
+2）创建分支。
+ 	project]# git branch hotfix
+	project]# git branch feature
+	project]# git branch -v
+
+步骤二：切换与合并分支
+1）切换分支。
+	project]# git checkout hotfix
+	project]# git branch -v
+
+2）在新的分支上可以继续进行数据操作（增、删、改、查）。
+	project]# echo "fix a bug" >> new.txt
+	project]# git add .
+	project]# git commit -m "fix a bug"
+
+3）将hotfix修改的数据合并到master分支。
+注意，合并前必须要先切换到master分支，然后再执行merge命令。
+	project]# git checkout master
+	project]# cat new.txt        #默认master分支中没有hotfix分支中的数据
+	project]# git merge hotfix
+
+
+步骤二：解决版本分支的冲突问题
+1）在不同分支中修改相同文件的相同行数据，模拟数据冲突。
+
+2）查看有冲突的文件内容，修改文件为最终版本的数据，解决冲突。
+	project]# git add .
+	project]# git commit -m "resolved"	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,61 @@
+配置MySQL多实例
+什么是多实例：
+在一台物理主机上运行多个数据库服务，可以节约运维成本，提高硬件利用率
+
+步骤一：配置多实例
+1）解压软件、修改目录名、设置PATH路径
+	]# yum –y  install libaio
+	]# useradd -r mysql	//新建MySQL系统用户	
+	]# tar -zxvf mysql-5.7.20-linux-glibc2.12-x86_64.tar.gz		//解包
+	]# mv mysql-5.7.20-linux-glibc2.12-x86_64 /usr/local/mysql	//安装数据库
+	]# PATH=/usr/local/mysql/bin:$PATH		//环境变量
+	]# vim /etc/bashrc	//开机自动执行文件
+	export PATH=/usr/local/mysql/bin:$PATH	//把MySQL管理命令加入Linux系统环境
+
+2）编辑主配置文件/etc/my.cnf
+每个实例要有独立的数据库目录、监听端口号、实例名称和独立的sock文件
+	]# vim /etc/my.cnf
+	[mysqld_multi]        //启用多实例
+	mysqld = /usr/local/mysql/bin/mysqld_safe        //指定进程文件路径
+	mysqladmin = /usr/local/mysql/bin/mysqladmin    //指定管理命令路径
+	user = root        //指定进程用户
+
+	[mysqld1]        //实例进程名称
+	port=3307        //端口号
+	datadir=/dir1        //数据库目录 ，要手动创建
+	socket=/dir1/mysqld1.sock        //指定sock文件的路径和名称
+	pid-file=/dir1/mysqld1.pid        //进程pid号文件位置
+	log-error=/dir1/mysqld1.err        //错误日志位置 
+
+	[mysqld2]
+	port=3308
+	datadir=/dir2
+	socket=/dir2/mysqld2.sock
+	pid-file=/dir2/mysqld2.pid
+	log-error=/dir2/mysqld2.err 
+
+3）创建数据库目录
+	]# mkdir  /dir1 /dir2
+	]# chown mysql:mysql /dir1 /dir2     //设置数据库目录权限归属
+
+4）启动多实例
+首次启动服务会做数据初始化 并初始和提示数据库管理员本机登录密码
+	]# mysqld_multi  start 1 //启动实例1   
+	]# mysqld_multi  start 2  //启动实例2
+
+5）查看端口和数据库目录
+
+
+6）访问多实例
+使用初始化密码登录实例
+	]# mysql -uroot -p'ly#LryiFE5fT' -S /dir1/mysqld1.sock 	// -S 数据库本机连接文件
+
+
+
+7）停止多实例服务
+	mysqld_multi --user=root --password=密码 stop 实例编号
+
+
+
+
+

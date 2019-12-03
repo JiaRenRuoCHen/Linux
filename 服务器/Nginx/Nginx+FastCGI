@@ -1,0 +1,47 @@
+通过调整Nginx服务端配置
+    配置Fast-CGI支持PHP网页
+    创建PHP测试页面，测试使用PHP连接数据库的效果
+
+步骤一： php-fpm配置文件
+1）查看php-fpm配置文件
+	]# vim /etc/php-fpm.d/www.conf
+	listen = 127.0.0.1:9000            //PHP端口号
+	pm.max_children = 32                //最大进程数量
+	pm.start_servers = 15                //最小进程数量
+
+步骤二：修改Nginx配置文件并启动服务
+	]# vim /usr/local/nginx/conf/nginx.conf
+	location / {
+	            root   html;
+	            index  index.php  index.html   index.htm;
+	#设置默认首页为index.php，当用户在浏览器地址栏中只写域名或IP，不说访问什么页面时，服务器会把默认首页index.php返回给用户
+ 	       }
+	 location  ~  \.php$  {
+	            root           html;
+	            fastcgi_pass   127.0.0.1:9000;    #将请求转发给本机9000端口，PHP解释器
+ 	           fastcgi_index  index.php;
+	            #fastcgi_param   SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+	            include        fastcgi.conf;       #加载其他配置文件
+	        }
+	~]# /usr/local/nginx/sbin/nginx -s reload
+
+步骤三：创建PHP页面，测试LNMP架构能否解析PHP页面
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

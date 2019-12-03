@@ -1,0 +1,59 @@
+通过配置Varnish缓存服务器，实现如下目标：
+    使用Varnish加速后端Web服务
+    代理服务器可以将远程的Web服务器页面缓存在本地
+    远程Web服务器对客户端用户是透明的
+    利用缓存机制提高网站的响应速度
+    使用varnishadm命令管理缓存页面
+    使用varnishstat命令查看Varnish状态
+
+
+部署Varnish缓存服务器(192.168.4.5)
+1）编译安装软件
+	]# yum -y install gcc readline-devel    //安装软件依赖包
+	]# yum -y install ncurses-devel         //安装软件依赖包
+	]# yum -y install pcre-devel            //安装软件依赖包
+	]# yum -y install python-docutils         //安装软件依赖包
+	]# useradd -s /sbin/nologin varnish                //创建账户
+	]# tar -xf varnish-5.2.1.tar.gz
+	]# cd varnish-5.2.1
+	varnish-5.2.1]# ./configure
+	varnish-5.2.1]# make && make install
+
+2）复制配置文件（注意相对路径与绝对路径）
+	varnish-5.2.1]# cp  etc/example.vcl   /usr/local/etc/default.vcl
+
+3）修改代理配置文件
+	]# vim  /usr/local/etc/default.vcl
+	backend default {
+      .host = "192.168.2.100";
+      .port = "80";
+	 }
+
+4）启动服务
+	]# varnishd  -f /usr/local/etc/default.vcl
+	//varnishd命令的其他选项说明如下：
+	//varnishd -s malloc,128M        定义varnish使用内存作为缓存，空间为128M
+	//varnishd -s file,/var/lib/varnish_storage.bin,1G 定义varnish使用文件作为缓存
+
+
+其他操作
+1）查看varnish日志
+	]# varnishlog                        //varnish日志
+	]# varnishncsa                    //访问日志
+
+2）更新缓存数据，在后台web服务器更新页面内容后，用户访问代理服务器看到的还是之前的数据，说明缓存中的数据过期了需要更新（默认也会自动更新，但非实时更新）。
+	]# varnishadm  
+	varnish> ban req.url ~ .* 	//清空缓存数据，支持正则表达式
+
+
+
+
+
+
+
+
+
+
+
+
+

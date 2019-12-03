@@ -1,0 +1,59 @@
+步骤一：部署Git服务器
+1）YUM安装Git软件。
+	]# yum -y install git
+
+2)初始化一个空仓库。
+	]# mkdir /var/git
+	]# git init /var/git/project --bare 
+	]# ls /var/git/project
+	config  description  HEAD  hooks  info  objects  refs   
+
+
+步骤二：客户端测试
+1) clone克隆服务器仓库到本地。
+	]# yum -y install git
+	]# git clone root@192.168.2.100:/var/git/project 
+
+2) 修改git配置。
+	]# git config --global user.email "you@example.com"
+	]# git config --global user.name "Your Name"
+	]# cat ~/.gitconfig 
+	[user]
+	email = you@example.com
+	name = Your Name
+
+3） 本地工作区对数据进行增删改查(必须要先进入仓库再操作数据)。
+
+4） 查看仓库中数据的状态。
+	project]# git status
+
+5） 将工作区的修改提交到暂存区。
+	project]# git add .
+
+6) 将暂存区修改提交到本地仓库。
+	project]# git commit  -m  "注释，可以为任意字符"
+	project]# git status
+
+7） 将本地仓库中的数据推送到远程服务器
+	]# git config --global push.default simple
+	]# git push
+	root@192.168.2.100's password:  输入服务器root密码
+	]# git status
+
+8) 将服务器上的数据更新到本地
+备注：可能其他人也在修改数据并提交服务器，就会导致自己的本地数据为旧数据，使用pull就可以将服务器上新的数据更新到本地。
+	project]# git pull
+
+
+9) 查看版本日志。
+	project]# git log
+	project]# git log --pretty=oneline
+	project]# git log --oneline
+	project]# git reflog
+
+备注：客户端也可以使用图形程序访问服务器。
+Windows需要安装git和tortoiseGit。
+
+
+
+

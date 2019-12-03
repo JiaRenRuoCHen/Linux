@@ -1,0 +1,90 @@
+HEAD指针操作
+HEAD指针是一个可以在任何分支和版本移动的指针，通过移动指针我们可以将数据还原至任何版本。每做一次提交操作都会导致git更新一个版本，HEAD指针也跟着自动移动。
+
+步骤一：HEAD指针基本操作
+1）准备工作（多对数据仓库进行修改、提交操作，以产生多个版本）。
+    [root@web2 project]# echo "new file" > new.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "add new.txt"
+    [root@web2 project]# echo "first" >> new.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "new.txt:first line"
+    [root@web2 project]# echo "second" >> new.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "new.txt:second"
+    [root@web2 project]# echo "third" >> new.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "new.txt:third"
+    [root@web2 project]# git push
+    [root@web2 project]# echo "123" > num.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "num.txt:123"
+    [root@web2 project]# echo "456" > num.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "num.txt:456"
+    [root@web2 project]# echo "789" > num.txt
+    [root@web2 project]# git add .
+    [root@web2 project]# git commit -m "num.txt:789"
+    [root@web2 project]# git push
+
+2) 查看Git版本信息。
+	project]#git reflog
+	project]#git log --oneline
+	04ddc0f num.txt:789
+	7bba57b num.txt:456
+	301c090 num.txt:123
+	b427164 new.txt:third
+	0584949 new.txt:second
+	ece2dfd new.txt:first line
+	e1112ac add new.txt
+	1a0d908 初始化
+
+3）移动HEAD指针，将数据还原到任意版本。
+提示：当前HEAD指针为HEAD@{0}。
+	 project]# git reset --hard 301c0
+	 project]# git reflog
+	301c090 HEAD@{0}: reset: moving to 301c0
+	04ddc0f HEAD@{1}: commit: num.txt:789
+	7bba57b HEAD@{2}: commit: num.txt:456
+	301c090 HEAD@{3}: commit: num.txt:123
+	b427164 HEAD@{5}: commit: new.txt:third
+	0584949 HEAD@{6}: commit: new.txt:second
+	ece2dfd HEAD@{7}: commit: new.txt:first line
+	e1112ac HEAD@{8}: commit: add new.txt
+	1a0d908 HEAD@{9}: commit (initial): 初始化
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

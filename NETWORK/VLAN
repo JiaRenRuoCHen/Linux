@@ -1,0 +1,58 @@
+划分VLAN
+步骤一：创建vlan，并将接口加入
+由于默认情况下所有接口都在VLAN1中，且VLAN1默认就存在
+	<Huawei>system-view 
+	[Huawei]vlan batch 2            //创建VLAN2
+	[Huawei]port-group 1
+	[Huawei-port-group-1]group-member Ethernet0/0/3 Ethernet0/0/4		//把几个端口设置为一组,方便管理
+	[Huawei-port-group-1]port link-type access 	//设置端口类型
+	[Huawei-port-group-1]port default vlan 2          //设置端口归属vlan
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

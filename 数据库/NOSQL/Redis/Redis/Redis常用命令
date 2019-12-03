@@ -1,0 +1,207 @@
+1.客户端连接redis服务端：
+
+    ===启动Redis服务端
+    redis-server /yourpath/redis.conf
+    ===启动Redis命令行客户端
+    建立长连接：redis-cli -h 127.0.0.1 -p 6379
+    若省略参数则将使用默认值连接服务器：redis-cli
+    如果在后面直接跟其它命令，则为临时连接，返回后即关闭：redis-cli get keyname
+    关闭服务端：redis-cli shutdown (可选参数：nosave、save)
+
+2.全局命令（按TAB键可自动补齐命令，多次按TAB可切换）所有命令名不区分大小写
+
+    keys * 遍历并获得所有key(可指定匹配模式字符串)，含大量key时不要使用
+    dbsize 返回键总数变量的值
+    exists key 检查key是否存在，存在返回1，否则返回0
+    del key [key …] 删除任意值类型的key，可一次性删除多个，返回删除个数
+    ttl key 查看key的过期时间，返回>=0表示过期时间，返回-1表示未设置，返回-2表示不存在的key
+    type key 返回key的结构类型，不存在返回none
+    object encoding key 返回key的值的内部编码类型
+
+    SELECT dbindex 选择当前Redis实例中指定编号的数据库（不建议使用多数据库，因为Redis为单线程模型，多数据库将使用的是同一个CPU，应该使用多个Redis实例），Redis的分布式实现Redis Cluster只允许使用0号数据库
+
+     FLUSHDB 清除当前数据库（键值对多时，会阻塞，且是危险的命令，可用rename-command配置来规避该危险）
+
+    FLUSHALL 清除所有数据库
+    ===
+
+    get key 读取key对应的value
+    mget key [key …] 批量读取
+    mset key value [key value ...] 批量添加、更新
+    set key value [EX seconds] [PX milliseconds] [NX|XX] 添加、更新key value，EX、PX表示过期时间，NX表示只添加未存在的key，XX表示只更新已存在的key,成功返回OK，失败nil
+    setex key seconds value 添加、更新key value，并设置过期时间
+    setnx key value 只添加未存在的key value
+    ===
+    incr key 对key的值自增1，返回自增后的值（若key不存在，则先添加，然后自增），若值为非数字则返回错误
+    incrby key increment 自增指定数值,increment可以是负数
+    incrbyfloat key increment 自增指定浮点数值,increment可以是负数(对于浮点数的value，只能用该命令)
+    decr key 自减
+    decrby key increment 自减指定数值,increment可以是负数
+    ===
+    setbit key offset value
+    setrange key offset value 把字符串索引offset处字符替换为指定value
+    getrange key start end 获取指定索引区域的字符
+    append key value 向字符串尾部追加值，返回追加后的字符串长度
+    strlen key 返回字符串长度
+    getset key value 返回旧值，并设置新值
+    ===
+
+    RENAME key newkey 重命名键，若newkey已存在，则会被覆盖
+    RENAMENX key newkey 只在newkey不存在时，重命名才会成功，否则返回0
+    RANDOMKEY 返回一个随机的key
+    ===键过期设置：
+        设置过期时间命令在redis内部最终都使用的是PEXPIREAT
+        Redis不支持二级数据结构内部元素的过期功能
+        SET key命令默认会清除过期时间！
+        SETEX key seconds value 是原子执行的，相当于set+expire组合，可减少一次网络请求
+    EXPIRE key seconds 多少秒后过期，过期的key会被自动删除
+    PEXPIRE key milliseconds
+    EXPIREAT key timestamp 到达指定时间戳时过期（单位是秒）
+    PEXPIREAT key milliseconds-timestamp
+    TTL key 查看key的剩余过期时间（秒）
+    PTTL key 毫秒
+    PERSIST key 清除过期时间
+
+3.迁移键：
+
+在源Redis实例的客户端上执行MIGRATE命令即可迁移，该命令是原子性的（组合了dump、restore、del命令），直接在源Redis实例和目标Redis实例直接传输，传输完成返回OK时，表示成功迁移，此时源Redis会根据MIGRATE指定的命令选项决定是否删除自身对应的key
+
+MIGRATE host port key|”” destination-db timeout [COPY] [REPLACE] [KEYS key[key …]]
+
+如：MIGRATE 127.0.0.1 6380 "" 0 1000 copy keys 002 005 z2 set1
+
+    host port 目标Redis实例地址
+    key|””迁移单个key时就指定该key，多个key时用””
+    destination-db 目标Redis实例数据库编号
+    timeout 执行迁移的过期时间（毫秒）
+    [COPY] 迁移后保留源key
+    [REPLACE] 不管目标Redis实例是否已存在迁移的key，都进行迁移并覆盖目标key的value
+    [KEYS key[key …]] 指定要迁移的多个键
+
+其它迁移键的方式（不建议使用）
+
+move key db 在同一个Redis实例内部的不同数据库之间迁移数据（仅为了兼容旧版）
+
+dump key 和 restore key ttl value 在不同Redis实例之间迁移数据（并非原子性的）
+
+ 
+
+4.遍历键：
+
+    ===遍历键的方式1：一次性全量遍历
+    keys pattern 遍历所有键，返回满足pattern匹配模式的key（若存在大量键，不要使用，阻塞严重，可在从节点上执行，这样就只阻塞从节点，但会影响主从复制）
+        * 代表匹配任意字符
+        ? 代表匹配一个字符
+        [] 代表匹配指定字符列表之一，如[1,3]匹配1或3，[1-10]匹配1到10的任意数字
+        \x 转义*、?等
+    ===遍历键的方式2：渐进式遍历SCAN，每次SCAN只扫描一部分键，解决了keys的阻塞问题，每次遍历的时间复杂度O(1)，但一般需要多次scan才能达到目的
+    SCAN cursor [MATCH pattern] [COUNT count] 返回当前游标值和遍历到的所有key
+        cursor 游标，当前遍历起始点，第一次从0开始，每次遍历完都会返回当前游标值，便于下一次遍历，返回0时表示遍历结束
+        [MATCH pattern] 匹配模式，和keys的pattern一样
+        [COUNT count] 指定遍历多少个key，默认为10
+        注意：SCAN的时候，可能添加、删除、修改了一些键，所以SCAN可能会遍历不到新的键，会遍历到重复的键
+    HSCAN key cursor [MATCH pattern] [COUNT count] 针对hash的渐进式遍历
+    SSCAN key cursor [MATCH pattern] [COUNT count] 针对set的渐进式遍历
+    ZSCAN key cursor [MATCH pattern] [COUNT count] 针对zset的渐进式遍历 
+
+5.hash相关命令
+
+    HSET key field value
+    HSETNX key field value
+    HDEL key field [field ...]
+    HEXISTS key field
+    HINCRBY key field increment
+    HINCRBYFLOAT key field increment
+    HKEYS key 获取所有字段名
+    HVALS key 获取所有字段值
+    HLEN key 获取字段总数
+    HSTRLEN key field 获取字段值得长度
+    HGET key field
+    HGETALL key 获取所有(字段+值)对，应该少用该命令，用HMGET、HSCAN代替
+    HMGET key field [field ...]
+    HMSET key field value [field value ...] 
+    HSCAN key cursor [MATCH pattern] [COUNT count]
+
+6.list列表相关命令（list是有序的、元素可索引访问、元素可重复）
+
+    LPUSH key value [value ...] 左边插入
+    LPUSHX key value 
+    LPOP key 左边删除
+    ===
+    RPUSH key value [value ...] 右边插入
+    RPUSHX key value
+    RPOP key 右边删除
+    RPOPLPUSH source destination
+    ===
+    LINSERT key BEFORE|AFTER pivot value 在pivot的前面、后面插入value
+    LRANGE key start stop 获取指定索引范围内的元素（含stop，支持反向索引，0 -1表示返回所有）
+    LSET key index value 修改指定索引处的元素
+    LTRIM key start stop 裁剪列表，只保留start到stop之间的元素(含stop),清空列表：ltrim list 0 0，然后lpop list
+    LINDEX key index 返回指定索引处的value
+    LLEN key 获取列表长度
+    LREM key count value 删除指定个数的值为value的元素，count=0表示删除所有，count>0表示从左到右删除count个元素，，count<0表示从右到左删除count个元素
+    BLPOP key [key ...] timeout 阻塞等待timeout秒后，删除并返回最左边的元素
+        当列表为空时：若timeout=0，则会一直阻塞直到有元素插入时才返回，若timeout>0，则时间到后返回nil
+        当列表不为空时：若timeout=0，则立即返回，若timeout>0，则时间到后返回
+        如果指定了多个key，则遍历这些key，只操作第一个有值得key，如 BLPOP list list2 list5 0
+    BRPOP key [key ...] timeout
+    BRPOPLPUSH source destination timeout
+    ===
+    列表的应用：
+        栈：lpush + lpop
+        队列：lpush + rpop
+        有限集合：lpush + ltrim
+        消息队列：lpush + brpop 
+
+5.无序集合set相关命令（set是无序的、元素不可索引访问、元素不可重复）
+
+    SADD key member [member ...] 添加元素，返回成功添加个数
+    SREM key member [member ...] 删除元素，返回成功删除个数
+    SCARD key 返回元素个数
+    SMEMBERS key 返回所有元素
+    SISMEMBER key member 判断元素是否存在
+    SPOP key [count] 随机弹出1个元素(删除)
+    SRANDMEMBER key [count] 随机获取指定个数的元素，不指定个数则为1个
+    SMOVE source destination member 把元素member从source移动到destination中
+    ===
+    SINTER key [key ...] 取交集
+    SINTERSTORE destination key [key ...] 取交集，把结构存到destination中
+    SUNION key [key ...] 取并集
+    SUNIONSTORE destination key [key ...]
+    SDIFF key [key ...] 取差集
+    SDIFFSTORE destination key [key ...]
+    ===
+    SSCAN key cursor [MATCH pattern] [COUNT count]
+
+6.有序集合zset的相关命令
+
+zset按元素的score排序的、元素不可索引访问、元素不可重复，但元素的score可重复；
+其中的min、max支持开区间“(”和闭区间“[”，而-inf、+inf分别代表无限小、无限大；
+
+    ZADD key [NX|XX] [CH] [INCR] score member [score member ...] 添加、更新
+    ZCARD key 返回成员总数
+    ZSCORE key member 返回指定成员的score
+    ZCOUNT key min max 返回指定score范围内成员个数
+    ZLEXCOUNT key min max 返回指定字典区间内成员数量
+    ZINCRBY key increment member 增加指定成员的score
+    ===
+    ZRANK key member 返回成员的排名
+    ZREVRANK key member
+    ===
+    ZRANGE key start stop [WITHSCORES] 返回指定排名范围内的成员
+    ZREVRANGE key start stop [WITHSCORES]
+    ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count] 返回指定score范围内的成员
+    ZREVRANGEBYSCORE key max min [WITHSCORES] [LIMIT offset count] 
+    ZRANGEBYLEX key min max [LIMIT offset count] 其中的min、max可以为-、+分别代表无限小、无限大
+    ZREVRANGEBYLEX key max min [LIMIT offset count]  返回指定字典区间内成员
+    ===
+    ZREM key member [member ...] 删除指定成员
+    ZREMRANGEBYLEX key min max 删除指定字典区间内成员
+    ZREMRANGEBYRANK key start stop 删除指定排名区间内成员
+    ZREMRANGEBYSCORE key min max 删除指定score区间内成员
+    ===
+    ZSCAN key cursor [MATCH pattern] [COUNT count]
+    ===
+    ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight[weight …]] [aggregate sum|min|max] 取交集，把结果保存到destination，numkeys做交集计算键的个数，WEIGHTS表示每个键的权重(默认为1，计算时会把每个成员的score乘以权重)，aggregate默认为sum（计算交集后，同名成员的score是如何取值的，求和sum、取小min、取大max）
+    ZUNIONSTORE destination numkeys key [key ...] [WEIGHTS weight[weight …]] [aggregate sum|min|max] 取并集
+

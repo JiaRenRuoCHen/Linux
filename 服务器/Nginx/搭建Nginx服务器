@@ -1,0 +1,69 @@
+搭建Nginx服务器
+步骤一：构建Nginx服务器
+1）使用源码包安装nginx软件包
+	]# yum -y install gcc pcre-devel openssl-devel        #安装依赖包
+	]# useradd -s /sbin/nologin nginx
+	]# tar  -xf   nginx-1.12.2.tar.gz
+	]# cd  nginx-1.12.2
+	nginx-1.12.2]# ./configure   \
+	--prefix=/usr/local/nginx   \                #指定安装路径
+	--user=nginx   \                            #指定用户
+	--group=nginx  \                            #指定组
+	--with-http_ssl_module                    #开启SSL加密功能
+	nginx-1.12.2]# make && make install     #编译并安装
+
+2）nginx命令的用法
+	]# /usr/local/nginx/sbin/nginx                    #启动服务
+	]# /usr/local/nginx/sbin/nginx -s stop            #关闭服务
+	]# /usr/local/nginx/sbin/nginx -s reload        #重新加载配置文件
+	]# /usr/local/nginx/sbin/nginx -V                #查看软件信息
+
+3）测试首页文件
+Nginx Web服务默认首页文档存储目录为/usr/local/nginx/html/，在此目录下默认有一个名为index.html的文件，使用客户端访问测试页面：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

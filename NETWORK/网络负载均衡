@@ -1,0 +1,31 @@
+网络负载均衡
+配置MS1为vlan10的主路由器、vlan20的备份路由器，MS2为vlan10的备份路由器、vlan20的主路由器，实现负载均衡的效果
+步骤一：配置交换机
+
+1）MS1
+
+    [Huawei]interface Vlanif 10
+    [Huawei-Vlanif10]ip address 192.168.10.252 24
+    [Huawei-Vlanif10]vrrp vrid 1 virtual-ip 192.168.10.254
+    [Huawei-Vlanif10]vrrp vrid 1 priority 110
+    [Huawei]interface Vlanif 20
+    [Huawei-Vlanif20]ip address 192.168.20.252 24
+    [Huawei-Vlanif20]vrrp vrid 2 virtual-ip 192.168.20.254
+
+1）MS2
+
+    [Huawei]interface Vlanif 10
+    [Huawei-Vlanif10]ip address 192.168.10.253 24
+    [Huawei-Vlanif10]vrrp vrid 1 virtual-ip 192.168.10.254
+    [Huawei]interface Vlanif 20
+    [Huawei-Vlanif20]ip address 192.168.20.253 24
+    [Huawei-Vlanif20]vrrp vrid 2 virtual-ip 192.168.20.254
+    [Huawei-Vlanif20]vrrp vrid 2 priority 110
+
+
+
+
+
+
+
+

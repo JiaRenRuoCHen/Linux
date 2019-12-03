@@ -1,0 +1,82 @@
+
+
+
+
+SSH协议服务器（支持读写操作）
+1）创建基于密码验证的SSH协议服务器（web1主机操作）。
+	]# git init --bare /var/git/base_ssh
+	Initialized empty Git repository in /var/git/base_ssh/
+
+2)客户端访问的方式（web2主机操作）。
+	]# git clone root@192.168.2.100:/var/git/base_ssh
+	]# rm -rf base_ssh
+
+
+3）客户端生成SSH密钥，实现免密码登陆git服务器（web2主机操作）。
+	]# ssh-keygen -f /root/.ssh/id_rsa -N ''
+	]# ssh-copy-id  192.168.2.100
+	]# git clone root@192.168.2.100:/var/git/base_ssh
+	]# git push
+
+
+Git协议服务器（只读操作的服务器）
+1）安装git-daemon软件包（web1主机操作）。
+	]# yum -y install git-daemon
+
+2）创建版本库（web1主机操作）。
+	]# git init --bare /var/git/base_git
+	Initialized empty Git repository in /var/git/base_git/
+
+3）修改配置文件，启动git服务（web1主机操作）。
+	]# vim /usr/lib/systemd/system/git@.service
+    	修改前内容如下：
+   	 ExecStart=-/usr/libexec/git-core/git-daemon --base-path=/var/lib/git 
+   	 --export-all --user-path=public_git --syslog --inetd –verbose
+   	 修改后内容如下：
+  	  ExecStart=-/usr/libexec/git-core/git-daemon --base-path=/var/git 
+  	  --export-all --user-path=public_git --syslog --inetd –verbose
+	]# systemctl  start  git.socket
+
+4）客户端访问方式（web2主机操作）
+	]# git clone git://192.168.2.100/base_git
+
+
+HTTP协议服务器（只读操作的服务器）
+1）安装gitweb、httpd软件包（web1主机操作）。
+	]# yum -y install httpd gitweb
+
+2）修改配置文件，设置仓库根目录（web1主机操作）。
+	]# vim +11 /etc/gitweb.conf 
+	$projectroot = "/var/git";                        #添加一行
+
+3) 创建版本仓库（web1主机操作）
+	]# git init --bare /var/git/base_http
+
+4）启动httpd服务器
+	]# systemctl start httpd
+
+5）客户端访问方式（web2主机操作）
+注意：调用虚拟机中的firefox浏览器，需要在远程时使用ssh -X 服务器IP，并且确保真实主机的firefox已经关闭。
+	]# firefox http://192.168.2.100/git/
+
+
+课外扩展知识：注册使用Github
+命令行操作（需要联网的主机)
+	]# yum -y install git
+	]# git clone https://github.com/账户名称/仓库名称	#clone指令用于将服务器仓库中的资料打包下载到本地
+	]# cd 仓库名称 
+	]# git add .	#add添加新文件
+	]# git commit -m "test"
+	]# git push		#commit和push实现提交代码的功能
+	]# git pull	 	#pull可以从githuab服务器拉取数据到本地
+
+
+
+
+
+
+
+
+
+
+

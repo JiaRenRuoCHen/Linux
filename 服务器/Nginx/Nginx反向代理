@@ -1,0 +1,134 @@
+使用Nginx实现Web反向代理功能，实现如下功能：
+1.后端Web服务器两台，可以使用httpd实现
+2.Nginx采用轮询的方式调用后端Web服务器
+3.两台Web服务器的权重要求设置为不同的值
+4.最大失败次数为1，失败超时时间为30秒
+
+步骤一：部署实施后端Web服务器
+1）部署后端Web1服务器
+后端Web服务器可以简单使用yum方式安装httpd实现Web服务，为了可以看出后端服务器的不同，可以将两台后端服务器的首页文档内容设置为不同的内容。
+	]# yum  -y  install  httpd
+	]# echo "192.168.2.100" > /var/www/html/index.html
+	]# systemctl restart httpd
+
+步骤二：搭建Nginx服务器
+1）使用源码包安装nginx软件包
+	]# yum -y install gcc pcre-devel openssl-devel        #安装依赖包
+	]# useradd -s /sbin/nologin nginx
+	]# tar  -xf   nginx-1.12.2.tar.gz
+	]# cd  nginx-1.12.2
+	nginx-1.12.2]# ./configure   \
+	--prefix=/usr/local/nginx   \                #指定安装路径
+	--user=nginx   \                            #指定用户
+	--group=nginx  \                            #指定组
+	nginx-1.12.2]# make && make install     #编译并安装
+
+步骤三：配置Nginx服务器，添加服务器池，实现反向代理功能
+1）修改/usr/local/nginx/conf/nginx.conf配置文件
+	]# vim /usr/local/nginx/conf/nginx.conf
+ 	   .. ..
+ 	   http {
+ 	   .. ..
+	    #使用upstream定义后端服务器集群，集群名称任意(如webserver)
+	    #使用server定义集群中的具体服务器和端口
+	    upstream webserver {
+                    server 192.168.2.100:80;
+                    server 192.168.2.200:80;
+ 	           }
+ 	   .. ..
+	    server {
+ 	           listen        80;
+	            server_name  localhost;
+ 	               location / {
+ 	 	  #通过proxy_pass将用户的请求转发给webserver集群
+ 	               proxy_pass http://webserver;
+ 	           }
+  	  }
+
+2）重新加载配置
+	]# /usr/local/nginx/sbin/nginx -s reload
+
+3）客户端使用浏览器访问代理服务器测试轮询效果
+
+
+
+步骤四：配置upstream服务器集群池属性
+
+1）设置失败次数，超时时间，权重
+weight可以设置后台服务器的权重，max_fails可以设置后台服务器的失败次数，fail_timeout可以设置后台服务器的失败超时时间。
+    [root@proxy ~]# vim /usr/local/nginx/conf/nginx.conf
+    .. ..
+    http {
+    .. ..
+    upstream webserver {
+                    server 192.168.2.100 weight=1 max_fails=1 fail_timeout=30;
+                    server 192.168.2.200 weight=2 max_fails=2 fail_timeout=30;
+                    server 192.168.2.101 down;
+            }
+    #weight设置服务器权重值，默认值为1
+    #max_fails设置最大失败次数，测试服务器几次才确认服务器失败
+    #fail_timeout设置失败超时时间，单位为秒
+    #down标记服务器已关机，不参与集群调度
+    .. ..
+    server {
+            listen        80;
+            server_name  localhost;
+                location / {
+                proxy_pass http://webserver;
+            }
+    }
+
+2）重新加载配置
+	]# /usr/local/nginx/sbin/nginx -s reload
+
+步骤五：配置upstream服务器集群的调度算法
+1）设置相同客户端访问相同Web服务器
+	]# vim /usr/local/nginx/conf/nginx.conf
+	    .. ..
+ 	   http {
+ 	   .. ..
+ 	   upstream webserver {
+ 	   #通过ip_hash设置调度规则为：相同客户端访问相同服务器
+                     ip_hash;
+                    server 192.168.2.100 weight=1 max_fails=2 fail_timeout=10;
+                    server 192.168.2.200 weight=2 max_fails=2 fail_timeout=10;
+    	        }
+   	 	.. ..
+   	 server {
+            listen        80;
+            server_name  www.tarena.com;
+                location / {
+                proxy_pass http://webserver;
+ 	           }
+ 	   }
+
+2）重新加载配置
+	]# /usr/local/nginx/sbin/nginx -s reload
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
